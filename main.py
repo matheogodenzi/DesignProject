@@ -35,10 +35,13 @@ chavannes = parent_directory + "\Chavannes"
 
 Commune_paths = [renens, ecublens, crissier, chavannes]
 
+
 ## reading excel files 
 load_data_2023 = []
 load_data_2022 = []
 building_data_2023 = []
+
+
 for i, commune in enumerate(Commune_paths):
     
     # extracting load curves 
@@ -62,9 +65,7 @@ LoadCurve_2023_dict = {f.get_variable_name(Commune_paths[i], globals()): load_da
 LoadCurve_2022_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2022[i] for i in range(len(Commune_paths))}
 Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building_data_2023[i] for i in range(len(Commune_paths))}
 
-#%%
-
-# get all typologies sorted 
+#%% get all typologies sorted 
 
 #School_loads =[]
 #Culture_loads = []
@@ -73,12 +74,12 @@ Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building
 #Bar_loads =[]
 #Parkinglot_loads =[]
 
+Typo_loads = {}
+Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
+
 for i, (k, v) in enumerate(Building_dict_2023.items()):
     
     Commune =  Building_dict_2023[k]
-    
-    Typo_loads = {}
-    Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
 
     for typo in Typo_list: 
         
@@ -87,38 +88,15 @@ for i, (k, v) in enumerate(Building_dict_2023.items()):
         Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
         load_selected = LoadCurve_2023_dict[k][Complete_IDs]
         
-        print(typo)
         if i== 0:
             Typo_loads[typo] = load_selected.copy()
-            break 
         else : 
-            Typo_loads[typo][Complete_IDs] = load_selected.loc[:,Complete_IDs]
+            df = Typo_loads[typo].copy() 
+            df[Complete_IDs] = load_selected.loc[:,Complete_IDs]
+            Typo_loads[typo] = df
     
+#print(Typo_loads)
 
-print(Typo_loads["Ecole"])
-#%%
-    
-    
-    Commune_culture = Commune[Commune["Typo"]== "Culture"]
-    Culture_list.extend(Commune_culture["Référence"].tolist())
-    
-    Commune_apems = Commune[Commune["Typo"]== "Apems"]
-    Apems_ID.extend(Commune_apems["Référence"].tolist())
-    
-    Commune_institutions = Commune[Commune["Typo"]== "Commune"]
-    Institutions_ID.extend(Commune_institutions["Référence"].tolist())
-    
-    Commune_bar = Commune[Commune["Typo"]== "Buvette"]
-    Bar_ID.extend(Commune_bar["Référence"].tolist())
-    
-    Commune_parking = Commune[Commune["Typo"]== "Parking"]
-    Parkinglot_ID.extend(Commune_parking["Référence"].tolist())
-    
-    
-
-
-
-## Extracting Typologies 
 
 #%% Plotting typologies 
 
@@ -126,15 +104,12 @@ print(Typo_loads["Ecole"])
 custom_palette = sb.set_palette("deep")
 
 # plot of the 
-sb.lineplot(data=School_loads, linewidth=0.5, palette=custom_palette)
+sb.lineplot(data=Typo_loads["Commune"], linewidth=0.5, palette=custom_palette)
 plt.title('Electric consumptions')
 plt.xlabel('dates')
 plt.ylabel('kWh_{el}')
 plt.legend().set_visible(False)
 plt.show()
-
-    
-
 
 #%%
 
