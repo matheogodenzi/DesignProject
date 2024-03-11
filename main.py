@@ -16,7 +16,7 @@ import os
 
 
 """functions imports"""
-from functions.py import *
+import functions as f
 
 """data acquisition"""
 
@@ -46,5 +46,6 @@ Commune_dict = {f.get_variable_name(Commune_paths[i], globals()): Commune_data[i
 
 
 
-"""done"""
+"""extracting typologies"""
+
 
