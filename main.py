@@ -35,21 +35,31 @@ chavannes = parent_directory + "\Chavannes"
 Commune_paths = [renens, ecublens, crissier, chavannes]
 
 ## reading excel files 
-Commune_data = []
+load_data = []
+building_data = []
 for i, commune in enumerate(Commune_paths):
     
+    # extracting load curves 
     df = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=2)
     df.set_index("Date", inplace=True)
-    Commune_data.append(df)
+    
+    # extracting buildings
+    buildings = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=0)
+    
+    # storing data 
+    load_data.append(df)
+    building_data.append(buildings)
 
 
-Commune_dict = {f.get_variable_name(Commune_paths[i], globals()): Commune_data[i] for i in range(len(Commune_paths))}
+LoadCurve_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data[i] for i in range(len(Commune_paths))}
+Building_dict = {f.get_variable_name(Commune_paths[i], globals()): building_data[i] for i in range(len(Commune_paths))}
 
 #%%
 
-
-
 ## Extracting Typologies 
 
-print(Commune_dict["crissier"])
+print(LoadCurve_dict["crissier"])
+
+
+#%%
 
