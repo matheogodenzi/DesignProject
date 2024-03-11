@@ -13,6 +13,7 @@ import scipy as sp
 import sklearn as skl
 import pandas as pd
 import os
+import seaborn as sb
 
 
 """functions imports"""
@@ -64,41 +65,42 @@ Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building
 #%%
 
 # get all typologies sorted 
-Schools_ID =[]
-Culture_ID = []
-Apems_ID = []
-Institutions_ID = []
-Bar_ID =[]
-Parkinglot_ID =[]
+
+#School_loads =[]
+#Culture_loads = []
+#Apems_loads = []
+#Institutions_loads = []
+#Bar_loads =[]
+#Parkinglot_loads =[]
 
 for i, (k, v) in enumerate(Building_dict_2023.items()):
     
     Commune =  Building_dict_2023[k]
     
-    
-    
+    Typo_loads = {}
+    Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
+
+    for typo in Typo_list: 
+        
+        Building_ID = Commune[Commune["Typo"]== typo]
+        ID_list = Building_ID["Référence"].tolist()
+        Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
+        load_selected = LoadCurve_2023_dict[k][Complete_IDs]
+        
+        print(typo)
+        if i== 0:
+            Typo_loads[typo] = load_selected.copy()
+            break 
+        else : 
+            Typo_loads[typo][Complete_IDs] = load_selected.loc[:,Complete_IDs]
     
 
-    Commune_schools = Commune[Commune["Typo"]== "Ecole"]
-    
-    School_list = Commune_schools["Référence"].tolist()
-    
-    School_IDs = ["Livraison active."+elem+".kWh" for elem in School_list]
-    
-    print(School_list)
-    load_selected = LoadCurve_2023_dict[k][School_IDs]
-
-    print(load_selected)
-    
-    Schools_ID.extend(School_list)
-    
-    
-    
-    
+print(Typo_loads["Ecole"])
+#%%
     
     
     Commune_culture = Commune[Commune["Typo"]== "Culture"]
-    Culture_ID.extend(Commune_culture["Référence"].tolist())
+    Culture_list.extend(Commune_culture["Référence"].tolist())
     
     Commune_apems = Commune[Commune["Typo"]== "Apems"]
     Apems_ID.extend(Commune_apems["Référence"].tolist())
@@ -118,6 +120,18 @@ for i, (k, v) in enumerate(Building_dict_2023.items()):
 
 ## Extracting Typologies 
 
+#%% Plotting typologies 
+
+
+custom_palette = sb.set_palette("deep")
+
+# plot of the 
+sb.lineplot(data=School_loads, linewidth=0.5, palette=custom_palette)
+plt.title('Electric consumptions')
+plt.xlabel('dates')
+plt.ylabel('kWh_{el}')
+plt.legend().set_visible(False)
+plt.show()
 
     
 
