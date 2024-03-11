@@ -38,14 +38,18 @@ Commune_paths = [renens, ecublens, crissier, chavannes]
 Commune_data = []
 for i, commune in enumerate(Commune_paths):
     
-    Commune_data.append(pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=2))
+    df = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=2)
+    df.set_index("Date", inplace=True)
+    Commune_data.append(df)
 
 
 Commune_dict = {f.get_variable_name(Commune_paths[i], globals()): Commune_data[i] for i in range(len(Commune_paths))}
 
+#%%
 
 
 
-"""extracting typologies"""
+## Extracting Typologies 
 
+print(Commune_dict["crissier"])
 
