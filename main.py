@@ -212,19 +212,43 @@ plt.show()
 
 #%% creating a typical day 
 
-data_day = Typo_loads["Ecole"]
+data_day = Typo_loads["Buvette"]
 
 days = 365
 for i in range(365):
     
     if i == 0: 
-        data_day = Typo_loads["Ecole"][:96, :]
+        data_day = Typo_loads["Apems"].iloc[:96, :]
     else: 
-        data_day += Typo_loads["Ecole"][(i-1)96:i*96, :]
+        data_day += Typo_loads["Apems"].iloc[(i-1)*96:i*96, :].values
     
-data /= days
+data_day /= days
 
 
+plt.plot(data_day)
+plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+
+plt.show()
+
+
+#%% creating typical week 
+
+Typologie = "Ecole"
+weeks = 52
+for i in range(weeks):
+    
+    if i == 0: 
+        data_week = Typo_loads[Typologie].iloc[:96*7, :]
+    else: 
+        data_week += Typo_loads[Typologie].iloc[(i-1)*96*7:i*96*7, :].values
+    
+data_week /= days
+
+
+plt.plot(data_week)
+plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+
+plt.show()
 
 
 
