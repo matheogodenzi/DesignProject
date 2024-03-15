@@ -264,6 +264,3 @@ plt.show()
 
 
 
-
-
-git 
