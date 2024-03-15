@@ -114,9 +114,9 @@ plt.show()
 
 #%% Averaging over a day (24h)
 
-result = f.24h_average(Typo_loads["Ecole"])
+result = f.average_24h(Typo_loads["Ecole"])
 
-#%% seaborn graphic average 
+#%% seaborn graphic average 24h
 
 custom_palette = sb.set_palette("deep")
 
@@ -129,26 +129,100 @@ plt.ylabel('kWh_{el}')
 plt.legend(title='Custom Legend', loc='upper left')
 plt.show()
 
-#%% 
+#%% matplotlib graphic average 24h
 
-plt.plot(result)
-plt.title('Electric consumptions')
+plt.plot(result, linewidth=0.5)
+plt.title('Electric consumptions ***insert Typology***')
 plt.xlabel('days')
 plt.ylabel('kWh_{el}')
 #plt.legend().set_visible(False)
-plt.legend(title='Custom Legend', loc='upper left')
+
+# labels 
+
+# Place legend outside the plot area
+plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+
+# Show the plot
+plt.tight_layout()  # Adjust layout to prevent clipping of legend
 plt.grid()
 plt.show()
 
 
+#%%Averaging over a week 
+
+res = f.av_1_week(Typo_loads["Ecole"])
+
+#%% matplotlib graphic average 1 week
+
+plt.plot(res, linewidth=1)
+plt.title('Electric consumptions ***insert Typology***')
+plt.xlabel('weeks')
+plt.ylabel('kWh_{el}')
+#plt.legend().set_visible(False)
+
+# labels 
+
+# Place legend outside the plot area
+plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+
+# Show the plot
+plt.tight_layout()  # Adjust layout to prevent clipping of legend
+plt.grid()
+plt.show()
+
+#%%Averaging over a week 
+
+res = f.av_1_month(Typo_loads["Ecole"])
+
+#%% matplotlib graphic average 1 month
 
 
+plt.plot(res, linewidth=1)
+plt.title('Electric consumptions ***insert Typology***')
+plt.xlabel('month')
+plt.ylabel('kWh_{el}')
+#plt.legend().set_visible(False)
+
+# labels 
+
+# Place legend outside the plot area
+plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+
+# Show the plot
+plt.tight_layout()  # Adjust layout to prevent clipping of legend
+plt.grid()
+plt.show()
+
+#%% calculating mean and standard deviation for a typical day the year 
+
+data_frame = f.av_1_month(Typo_loads["Ecole"])
+row_mean = data_frame.mean(axis=1)
+row_std = data_frame.std(axis=1)
+data_frame["Mean"] = row_mean
+data_frame["STD"] = row_std
+
+#%%
+plt.figure()
+
+plt.plot(data_frame["Mean"].values+data_frame["STD"].values, color="blue", alpha=0.3)
+plt.plot(data_frame["Mean"].values, color="blue")
+plt.plot(data_frame["Mean"].values-data_frame["STD"].values, color="blue", alpha=0.3)
+plt.show()
 
 
+#%% creating a typical day 
 
+data_day = Typo_loads["Ecole"]
 
-
-
+days = 365
+for i in range(365):
+    
+    if i == 0: 
+        data_day = Typo_loads["Ecole"][:96, :]
+    else: 
+        data_day += Typo_loads["Ecole"][(i-1)96:i*96, :]
+    
+data /= days
 
 
 
