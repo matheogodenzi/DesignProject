@@ -83,26 +83,4 @@ def av_1_month(df):
     
     return result
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
  
