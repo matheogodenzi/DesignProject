@@ -19,4 +19,24 @@ def get_variable_name(var, namespace):
             return name
     return None
 
+
+
+def 24h_average(df):
+    
+    chunk_size = 96 #96 quarters of hour
+    num_rows = len(df)
+    averages = []
+
+    # Iterate over the DataFrame in chunks of 96 rows
+    for i in range(0, num_rows, chunk_size):
+        chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
+        chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
+        averages.append(chunk_avg)  # Append the averages to the list
+
+    # Concatenate the averages into a single DataFrame
+    result = pd.concat(averages, axis=1).T
+
+    # Print the result
+    print(result)
+    return result
  

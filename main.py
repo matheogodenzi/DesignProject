@@ -15,8 +15,8 @@ import pandas as pd
 import os
 import seaborn as sb
 
-
 """functions imports"""
+
 import functions as f
 
 """data acquisition"""
@@ -26,6 +26,7 @@ import functions as f
 ## Generic path of the folder in your local terminal 
 current_script_path = os.path.abspath(__file__)
 parent_directory = os.path.dirname(current_script_path)
+
 
 ## Creating specificpath for each commune
 renens = parent_directory + "\Renens"
@@ -104,12 +105,66 @@ for i, (k, v) in enumerate(Building_dict_2023.items()):
 custom_palette = sb.set_palette("deep")
 
 # plot of the 
-sb.lineplot(data=Typo_loads["Commune"], linewidth=0.5, palette=custom_palette)
+sb.lineplot(data=Typo_loads["Commune"].head(900), linewidth=0.5, palette=custom_palette)
 plt.title('Electric consumptions')
 plt.xlabel('dates')
 plt.ylabel('kWh_{el}')
 plt.legend().set_visible(False)
 plt.show()
 
-#%%
+#%% Averaging over a day (24h)
+
+result = f.24h_average(Typo_loads["Ecole"])
+
+#%% seaborn graphic average 
+
+custom_palette = sb.set_palette("deep")
+
+# plot of the 
+sb.lineplot(data=result, linewidth=1, palette=custom_palette, linestyle="solid")
+plt.title('Electric consumptions')
+plt.xlabel('days')
+plt.ylabel('kWh_{el}')
+#plt.legend().set_visible(False)
+plt.legend(title='Custom Legend', loc='upper left')
+plt.show()
+
+#%% 
+
+plt.plot(result)
+plt.title('Electric consumptions')
+plt.xlabel('days')
+plt.ylabel('kWh_{el}')
+#plt.legend().set_visible(False)
+plt.legend(title='Custom Legend', loc='upper left')
+plt.grid()
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
