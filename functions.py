@@ -124,10 +124,65 @@ def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***i
     if show_legend == True:
         # Place legend outside the plot area attributing numbers to the plotlines
         plt.legend([i for i in range(tendency.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
-        
         # Show the plot
         plt.tight_layout()  # Adjust layout to prevent clipping of legend
+    
     plt.grid()
     plt.show()
     
     return 
+
+
+
+
+def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologie"):
+    row_mean = Tendency.mean(axis=1)
+    row_std = Tendency.std(axis=1)
+    Tendency["Mean"] = row_mean
+    Tendency["STD"] = row_std
+
+    plt.figure()
+    
+    # plotting stats
+    plt.plot(Tendency["Mean"].values+Tendency["STD"].values, color="blue", alpha=0.3)
+    plt.plot(Tendency["Mean"].values, color="blue")
+    plt.plot(Tendency["Mean"].values-Tendency["STD"].values, color="blue", alpha=0.3)
+    
+    #pimping the plot 
+    if period == "day":
+      plt.title("Mean load profile for " + Typology + " on a daily basis")  
+    else :
+        plt.title("Mean load profile for " + Typology + " on a " +period+"ly basis")
+   
+    plt.xlabel(period)
+    plt.ylabel("kWh_el")
+    plt.legend(["mean + std", "mean", "mean-std"])
+    plt.grid()
+    plt.show()
+    
+    return Tendency
+
+def typical_period(df, period):
+    
+    days = 365
+    weeks = 365//7
+    months = 365//30
+    
+    if period == "day":
+        intervals = days
+    if period == "week":
+        intervals = weeks
+    if period == "month":
+        intervals = months
+    
+    for i in range(intervals):
+        
+        if i == 0: 
+            period_df = df.iloc[:96, :]
+        else: 
+            period_df = df.iloc[(i-1)*96:i*96, :]
+            period_df += df.iloc[(i-1)*96:i*96, :].values
+        
+    period_df /= intervals
+    
+    return period_df

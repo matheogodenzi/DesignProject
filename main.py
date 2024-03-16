@@ -101,7 +101,7 @@ for i, (k, v) in enumerate(Building_dict_2023.items()):
 
 #%% Plotting typologies 
 
-
+"""
 custom_palette = sb.set_palette("deep")
 
 # plot of the 
@@ -111,13 +111,25 @@ plt.xlabel('dates')
 plt.ylabel('kWh_{el}')
 plt.legend().set_visible(False)
 plt.show()
+"""
 
-#%% Averaging over a day (24h)
+#%% Averaging over a a given period (smoothing of the curve)
 
-result = f.average_24h(Typo_loads["Ecole"])
+# parameters to change
+Typology = "Ecole"
+Period = "week"
+
+# smoothing calculation
+Loads = Typo_loads[Typology]
+Tendency = f.period_tendencies(Loads, Period)
+
+# plotting 
+plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
+
 
 #%% seaborn graphic average 24h
 
+"""
 custom_palette = sb.set_palette("deep")
 
 # plot of the 
@@ -128,110 +140,81 @@ plt.ylabel('kWh_{el}')
 #plt.legend().set_visible(False)
 plt.legend(title='Custom Legend', loc='upper left')
 plt.show()
+"""
 
 #%% matplotlib graphic average 24h
 
 
-f.plot_tendency(result, title="24h", period="day", show_legend=True)
 
-
-
-plt.plot(result, linewidth=0.5)
-plt.title('Electric consumptions ***insert Typology***')
-plt.xlabel('days')
-plt.ylabel('kWh_{el}')
-#plt.legend().set_visible(False)
-
-# labels 
-
-# Place legend outside the plot area
-plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
-
-# Show the plot
-plt.tight_layout()  # Adjust layout to prevent clipping of legend
-plt.grid()
-plt.show()
+#%%Averaging over a week 
 
 
 #%%Averaging over a week 
 
-res = f.av_1_week(Typo_loads["Ecole"])
-
-#%% matplotlib graphic average 1 week
-
-plt.plot(res, linewidth=1)
-plt.title('Electric consumptions ***insert Typology***')
-plt.xlabel('weeks')
-plt.ylabel('kWh_{el}')
-#plt.legend().set_visible(False)
-
-# labels 
-
-# Place legend outside the plot area
-plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
-
-# Show the plot
-plt.tight_layout()  # Adjust layout to prevent clipping of legend
-plt.grid()
-plt.show()
-
-#%%Averaging over a week 
-
-res = f.av_1_month(Typo_loads["Ecole"])
-
-#%% matplotlib graphic average 1 month
-
-
-plt.plot(res, linewidth=1)
-plt.title('Electric consumptions ***insert Typology***')
-plt.xlabel('month')
-plt.ylabel('kWh_{el}')
-#plt.legend().set_visible(False)
-
-# labels 
-
-# Place legend outside the plot area
-plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
-
-# Show the plot
-plt.tight_layout()  # Adjust layout to prevent clipping of legend
-plt.grid()
-plt.show()
 
 #%% calculating mean and standard deviation for a typical day the year 
 
-data_frame = f.av_1_month(Typo_loads["Ecole"])
-row_mean = data_frame.mean(axis=1)
-row_std = data_frame.std(axis=1)
-data_frame["Mean"] = row_mean
-data_frame["STD"] = row_std
 
-#%%
-plt.figure()
+# parameters to change
+Typology = "Ecole"
+Period = "week"
 
-plt.plot(data_frame["Mean"].values+data_frame["STD"].values, color="blue", alpha=0.3)
-plt.plot(data_frame["Mean"].values, color="blue")
-plt.plot(data_frame["Mean"].values-data_frame["STD"].values, color="blue", alpha=0.3)
-plt.show()
+# smoothing calculations
+Loads = Typo_loads[Typology]
+Tendency = f.period_tendencies(Loads, Period)
 
+# plotting 
+updated_tendency = f.plot_mean_load(Tendency, Period, Typology)
 
+#verifying that the mean and standard deviation have their own columns in the output
+print(updated_tendency)
 #%% creating a typical day 
 
-data_day = Typo_loads["Buvette"]
 
-days = 365
-for i in range(365):
-    
-    if i == 0: 
-        data_day = Typo_loads["Apems"].iloc[:96, :]
-    else: 
-        data_day += Typo_loads["Apems"].iloc[(i-1)*96:i*96, :].values
-    
-data_day /= days
 
+
+data = Typo_loads["Ecole"]
+period = "day"
+
+def typical_period(df, period):
+    
+    day_nbr = 365
+    week_days = 7
+    months_days = 30
+    week_nbr = day_nbr//week_days
+    month_nbr = day_nbr//months_days
+    
+    if period == "day":
+        intervals = day_nbr
+        
+        
+        
+    
+    
+    
+    
+    
+    
+    if period == "week":
+        intervals = week_nbr
+    if period == "month":
+        intervals = month_nbr
+    
+    for i in range(intervals):
+        if i == 0: 
+            period_df = df.iloc[:96, :]
+        else: 
+            period_df = df.iloc[(i-1)*96:i*96, :]
+            period_df += df.iloc[(i-1)*96:i*96, :].values
+        
+    period_df /= intervals
+    
+    return period_df
+
+data_day = typical_period(data, period)
 
 plt.plot(data_day)
-plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.legend([i for i in range(data_day.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
 
 plt.show()
 
@@ -247,11 +230,11 @@ for i in range(weeks):
     else: 
         data_week += Typo_loads[Typologie].iloc[(i-1)*96*7:i*96*7, :].values
     
-data_week /= days
+data_week /= weeks
 
 
 plt.plot(data_week)
-plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.legend([i for i in range(data_week.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
 
 plt.show()
 
