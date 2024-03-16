@@ -250,8 +250,14 @@ plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='u
 
 plt.show()
 
+#%% test 
+tendency = f.period_tendencies(Typo_loads["Ecole"], "month")
 
 
+
+#%%
+
+f.plot_tendency(tendency, title="Success", period="month")
 
 
 
