@@ -162,27 +162,45 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
     
     return Tendency
 
+
 def typical_period(df, period):
     
-    days = 365
-    weeks = 365//7
-    months = 365//30
+    day_nbr = 365
+    week_days = 7
+    month_days = 30
+    week_nbr = day_nbr//week_days
+    month_nbr = day_nbr//month_days
     
     if period == "day":
-        intervals = days
-    if period == "week":
-        intervals = weeks
-    if period == "month":
-        intervals = months
+        intervals = day_nbr
+        
+        for i in range(intervals):
+            if i == 0: 
+                period_df = df.iloc[:96, :]
+            else: 
+                period_df += df.iloc[(i-1)*96:i*96, :].values
+        
     
-    for i in range(intervals):
+    
+    if period == "week":
+        intervals = week_nbr
         
-        if i == 0: 
-            period_df = df.iloc[:96, :]
-        else: 
-            period_df = df.iloc[(i-1)*96:i*96, :]
-            period_df += df.iloc[(i-1)*96:i*96, :].values
+        for i in range(intervals):
+            if i == 0: 
+                period_df = df.iloc[:96*week_days, :]
+            else: 
+                period_df += df.iloc[(i-1)*96*week_days:i*96*week_days, :].values
         
+        
+    if period == "month":
+        intervals = month_nbr
+    
+        for i in range(intervals):
+            if i == 0: 
+                period_df = df.iloc[:96*month_days, :]
+            else:
+                period_df += df.iloc[(i-1)*96*month_days:i*96*month_days, :].values
+    
     period_df /= intervals
     
     return period_df

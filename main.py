@@ -14,6 +14,7 @@ import sklearn as skl
 import pandas as pd
 import os
 import seaborn as sb
+from datetime import datetime
 
 """functions imports"""
 
@@ -21,6 +22,7 @@ import functions as f
 
 """data acquisition"""
 
+#%%
 
 # DEFINING PATHS
 ## Generic path of the folder in your local terminal 
@@ -157,7 +159,7 @@ plt.show()
 
 # parameters to change
 Typology = "Ecole"
-Period = "week"
+Period = "day"
 
 # smoothing calculations
 Loads = Typo_loads[Typology]
@@ -170,54 +172,64 @@ updated_tendency = f.plot_mean_load(Tendency, Period, Typology)
 print(updated_tendency)
 #%% creating a typical day 
 
-
-
-
 data = Typo_loads["Ecole"]
 period = "day"
 
-def typical_period(df, period):
-    
-    day_nbr = 365
-    week_days = 7
-    months_days = 30
-    week_nbr = day_nbr//week_days
-    month_nbr = day_nbr//months_days
-    
-    if period == "day":
-        intervals = day_nbr
-        
-        
-        
-    
-    
-    
-    
-    
-    
-    if period == "week":
-        intervals = week_nbr
-    if period == "month":
-        intervals = month_nbr
-    
-    for i in range(intervals):
-        if i == 0: 
-            period_df = df.iloc[:96, :]
-        else: 
-            period_df = df.iloc[(i-1)*96:i*96, :]
-            period_df += df.iloc[(i-1)*96:i*96, :].values
-        
-    period_df /= intervals
-    
-    return period_df
 
-data_day = typical_period(data, period)
+#%% Typical perdiod 
 
-plt.plot(data_day)
-plt.legend([i for i in range(data_day.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+data_day = f.typical_period(data, period)
 
-plt.show()
+#typical day 
+def plot_typical_day(data_day):
+    indices_list = data_day.index.tolist()
+    
+    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
+    time_list = [dt.time().strftime("%H:%M:%S") for dt in datetime_list]
+    
+    plt.plot(time_list, data_day, linewidth=0.5)
+    plt.legend([i for i in range(data_day.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+    # Set the x-axis ticks to display only every n-th value
+    n = 15 # Display every 10th value
+    plt.xticks(np.arange(0, data_day.shape[0], n))
+    
+    
+    plt.show()
+    
+    return
 
+
+#typical week 
+
+def plot_typical_day(data_day):
+    indices_list = data_day.index.tolist()
+    
+    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
+    time_list = [dt.strftime('%d.%m.%Y %H:%M:%S') for dt in datetime_list]
+    print(time_list)
+    
+    
+    plt.plot(time_list, data_day, linewidth=0.5)
+    plt.legend([i for i in range(data_day.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+    # Set the x-axis ticks to display only every n-th value
+    
+    # Set x-axis tick labels to display weekdays
+    plt.xticks(datetime_list, [date.strftime('%A') for date in datetime_list])
+    
+    
+    plt.show()
+    
+    return
+
+
+#%%
+
+data = Typo_loads["Ecole"]
+period = "week"
+
+data_day = f.typical_period(data, period)
+
+plot_typical_day(data_day)
 
 #%% creating typical week 
 
