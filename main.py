@@ -131,6 +131,11 @@ plt.show()
 
 #%% matplotlib graphic average 24h
 
+
+f.plot_tendency(result, title="24h", period="day", show_legend=True)
+
+
+
 plt.plot(result, linewidth=0.5)
 plt.title('Electric consumptions ***insert Typology***')
 plt.xlabel('days')
@@ -251,13 +256,13 @@ plt.legend([i for i in range(result.shape[1])], bbox_to_anchor=(1.05, 1), loc='u
 plt.show()
 
 #%% test 
-tendency = f.period_tendencies(Typo_loads["Ecole"], "month")
+tendency = f.period_tendencies(Typo_loads["Ecole"], "day")
 
 
 
 #%%
 
-f.plot_tendency(tendency, title="Success", period="month")
+f.plot_tendency(tendency, title="Success 1", period="day", show_legend=True)
 
 
 
