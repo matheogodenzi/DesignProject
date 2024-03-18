@@ -89,8 +89,15 @@ for i, (k, v) in enumerate(Building_dict_2023.items()):
         
         Building_ID = Commune[Commune["Typo"]== typo]
         ID_list = Building_ID["Référence"].tolist()
+        surface_list = Building_ID["Surface"].tolist()
         Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
         load_selected = LoadCurve_2023_dict[k][Complete_IDs]
+        
+        #linking surface to ID
+        surf_id_dict = {k: v for k, v in zip(Complete_IDs, surface_list)}
+        
+        for col_name in load_selected.columns:
+            load_selected /= surf_id_dict[col_name]
         
         if i== 0:
             Typo_loads[typo] = load_selected.copy()
@@ -181,37 +188,34 @@ data_day = f.typical_period(data, period)
 
 f.plot_typical_day(data_day, "Ecole")
 
-#%% creating typical week 
+typical_day_schools = f.typical_period(data, period)
 
-Typologie = "Ecole"
-weeks = 52
-for i in range(weeks):
-    
-    if i == 0: 
-        data_week = Typo_loads[Typologie].iloc[:96*7, :]
-    else: 
-        data_week += Typo_loads[Typologie].iloc[(i-1)*96*7:i*96*7, :].values
-    
-data_week /= weeks
+f.plot_mean_load(typical_day_schools, "day", "Schools")
+
+#%% creating a typical week
+
+data = Typo_loads["Ecole"]
+period = "week"
 
 
-plt.plot(data_week)
-plt.legend([i for i in range(data_week.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+data_day = f.typical_period(data, period)
 
-plt.show()
+
+
+f.plot_typical_week(data_day, "Ecole")
 
 #%% test 
-tendency = f.period_tendencies(Typo_loads["Ecole"], "day")
+tendency = f.period_tendencies(Typo_loads["Ecole"], period)
 
 
 
 #%%
 
-f.plot_tendency(tendency, title="Success 1", period="day", show_legend=True)
+f.plot_tendency(tendency, title="Success 1", period=period, show_legend=True)
+f.plot_mean_load(tendency, period=period, Typology="Ecole")
 
 
-
-
+#%%
 
 
 
