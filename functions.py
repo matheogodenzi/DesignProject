@@ -46,6 +46,7 @@ def get_variable_name(var, namespace):
 
 def period_tendencies(df, period="week"):
     """
+    Delineate annual tendencies over days, weeks, and months
 
     Parameters
     ----------
