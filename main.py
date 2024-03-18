@@ -186,21 +186,21 @@ updated_tendency = f.plot_mean_load(Tendency, Period, Typology)
 print(updated_tendency)
 #%% creating a typical day 
 
-data = Typo_loads["Ecole"]
-period = "day"
+data = Typo_loads["Apems"]
+period = "week"
 
 
 data_day = f.typical_period(data, period)
 
-f.plot_typical_day(data_day, "Ecole")
+f.plot_typical_week(data_day, "Apems")
 
 typical_day_schools = f.typical_period(data, period)
 
-f.plot_mean_load(typical_day_schools, "day", "Schools")
+f.plot_mean_load(typical_day_schools, "week", "Schools")
 
 #%% creating a typical week
 
-data = Typo_loads["Ecole"]
+data = Typo_loads["Apems"]
 period = "week"
 
 
@@ -208,17 +208,17 @@ data_day = f.typical_period(data, period)
 
 
 
-f.plot_typical_week(data_day, "Ecole")
+f.plot_typical_week(data_day, "Apems")
 
 #%% test 
-tendency = f.period_tendencies(Typo_loads["Ecole"], period)
+tendency = f.period_tendencies(Typo_loads["Apems"], period)
 
 
 
 #%%
 
-f.plot_tendency(tendency, title="Success 1", period=period, show_legend=True)
-f.plot_mean_load(tendency, period=period, Typology="Ecole")
+f.plot_tendency(tendency, title="Load curve weekly averaeg for Schools", period=period, show_legend=True)
+f.plot_mean_load(tendency, period=period, Typology="Apems")
 
 
 #%%

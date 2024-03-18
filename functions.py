@@ -121,15 +121,33 @@ def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***i
         # Place legend outside the plot area attributing numbers to the plotlines
         # plt.legend([i for i in range(tendency.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
         # Show the plot
-        plt.legend(tendency.columns)
-        plt.tight_layout()  # Adjust layout to prevent clipping of legend
+        plt.legend(tendency.columns,loc='upper left', bbox_to_anchor=(1, 1), fontsize=8, title="Adresses")
+        # Restraining legend box to a certain width
+        #plt.legend.get_frame().set_linewidth(0.5)  # Adjust the border width of the legend box
+        #plt.legend.get_frame().set_width(0.3)      # Adjust the width of the legend box
+
+        #plt.tight_layout()  # Adjust layout to prevent clipping of legend
     
     plt.grid()
     plt.show()
     
     return 
 
+def filter_and_calculate_mean(row):
+    mean = row.mean()
+    std_dev = row.std()
+    threshold = 3  # Number of standard deviations beyond which a value is considered an outlier
+    outliers_mask = (row - mean).abs() > threshold * std_dev
+    filtered_row = row[~outliers_mask]
+    return filtered_row.mean()
 
+def filter_and_calculate_std(row):
+    mean = row.mean()
+    std_dev = row.std()
+    threshold = 3  # Number of standard deviations beyond which a value is considered an outlier
+    outliers_mask = (row - mean).abs() > threshold * std_dev
+    filtered_row = row[~outliers_mask]
+    return filtered_row.std()
 
 
 def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologie"):
@@ -151,11 +169,13 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
         DESCRIPTION.
 
     """
-    row_mean = Tendency.mean(axis=1)
-    row_std = Tendency.std(axis=1)
-    Tendency["Mean"] = row_mean
-    Tendency["STD"] = row_std
-
+    #row_mean = Tendency.mean(axis=1)
+    #row_std = Tendency.std(axis=1)
+    #Tendency["Mean"] = row_mean
+    #Tendency["STD"] = row_std
+    
+    Tendency["Mean"]= Tendency.apply(filter_and_calculate_mean, axis=1)
+    Tendency["STD"] = Tendency.apply(filter_and_calculate_std, axis=1)
     plt.figure()
     
     # plotting stats
