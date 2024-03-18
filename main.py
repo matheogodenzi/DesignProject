@@ -15,6 +15,7 @@ import pandas as pd
 import os
 import seaborn as sb
 from datetime import datetime
+import matplotlib.dates as mdates
 
 """functions imports"""
 
@@ -118,7 +119,7 @@ plt.show()
 #%% Averaging over a a given period (smoothing of the curve)
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Apems"
 Period = "week"
 
 # smoothing calculation
@@ -126,7 +127,7 @@ Loads = Typo_loads[Typology]
 Tendency = f.period_tendencies(Loads, Period)
 
 # plotting 
-plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
+f.plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
 
 
 #%% seaborn graphic average 24h
@@ -159,7 +160,7 @@ plt.show()
 
 # parameters to change
 Typology = "Ecole"
-Period = "day"
+Period = "month"
 
 # smoothing calculations
 Loads = Typo_loads[Typology]
@@ -176,60 +177,9 @@ data = Typo_loads["Ecole"]
 period = "day"
 
 
-#%% Typical perdiod 
-
 data_day = f.typical_period(data, period)
 
-#typical day 
-def plot_typical_day(data_day):
-    indices_list = data_day.index.tolist()
-    
-    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
-    time_list = [dt.time().strftime("%H:%M:%S") for dt in datetime_list]
-    
-    plt.plot(time_list, data_day, linewidth=0.5)
-    plt.legend([i for i in range(data_day.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
-    # Set the x-axis ticks to display only every n-th value
-    n = 15 # Display every 10th value
-    plt.xticks(np.arange(0, data_day.shape[0], n))
-    
-    
-    plt.show()
-    
-    return
-
-
-#typical week 
-
-def plot_typical_day(data_day):
-    indices_list = data_day.index.tolist()
-    
-    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
-    time_list = [dt.strftime('%d.%m.%Y %H:%M:%S') for dt in datetime_list]
-    print(time_list)
-    
-    
-    plt.plot(time_list, data_day, linewidth=0.5)
-    plt.legend([i for i in range(data_day.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
-    # Set the x-axis ticks to display only every n-th value
-    
-    # Set x-axis tick labels to display weekdays
-    plt.xticks(datetime_list, [date.strftime('%A') for date in datetime_list])
-    
-    
-    plt.show()
-    
-    return
-
-
-#%%
-
-data = Typo_loads["Ecole"]
-period = "week"
-
-data_day = f.typical_period(data, period)
-
-plot_typical_day(data_day)
+f.plot_typical_day(data_day, "Ecole")
 
 #%% creating typical week 
 
