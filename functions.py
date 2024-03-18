@@ -119,8 +119,9 @@ def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***i
 
     if show_legend == True:
         # Place legend outside the plot area attributing numbers to the plotlines
-        plt.legend([i for i in range(tendency.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+        # plt.legend([i for i in range(tendency.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
         # Show the plot
+        plt.legend(tendency.columns)
         plt.tight_layout()  # Adjust layout to prevent clipping of legend
     
     plt.grid()
@@ -164,7 +165,7 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
     
     #pimping the plot 
     if period == "day":
-      plt.title("Mean load profile for " + Typology + " on a daily basis")  
+        plt.title("Mean load profile for " + Typology + " on a daily basis")  
     else :
         plt.title("Mean load profile for " + Typology + " on a " +period+"ly basis")
    

@@ -90,11 +90,13 @@ for i, (k, v) in enumerate(Building_dict_2023.items()):
         Building_ID = Commune[Commune["Typo"]== typo]
         ID_list = Building_ID["Référence"].tolist()
         surface_list = Building_ID["Surface"].tolist()
+        address_list = Building_ID["Emplacement"].tolist()
         Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
         load_selected = LoadCurve_2023_dict[k][Complete_IDs]
         
         #linking surface to ID
         surf_id_dict = {k: v for k, v in zip(Complete_IDs, surface_list)}
+        address_id_dict = {k: v for k, v in zip(Complete_IDs, address_list)}
         
         for col_name in load_selected.columns:
             load_selected /= surf_id_dict[col_name]
@@ -105,6 +107,10 @@ for i, (k, v) in enumerate(Building_dict_2023.items()):
             df = Typo_loads[typo].copy() 
             df[Complete_IDs] = load_selected.loc[:,Complete_IDs]
             Typo_loads[typo] = df
+        
+        #renaming columns with adresses 
+        Typo_loads[typo].rename(columns=address_id_dict, inplace=True)
+            
     
 #print(Typo_loads)
 
