@@ -158,7 +158,7 @@ f.plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
 
 # parameters to change
 Typology = "Ecole"
-Period = "week"
+Period = "day"
 
 # smoothing calculations
 Loads = Typo_loads[Typology]
@@ -177,7 +177,7 @@ print(updated_tendency)
 
 data_day = f.typical_period(Loads, Period)
 
-f.plot_typical_week(data_day, Typology)
+f.plot_typical_day(data_day, Typology)
 
 typical_day_schools = f.typical_period(Loads, Period)
 

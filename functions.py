@@ -175,18 +175,20 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
     #Tendency["STD"] = row_std
     
     # x axis label 
-    x = Tendency.index
+    x = Tendency.index.copy()
+    # Check the type of index
+    print(type(x))
+
     #print(x)
     
     # Calculate the interval for the DayLocator
     if period == "day":
         num_ticks = 12
-        x = x.dt.time
     elif period == "week":
         num_ticks = 7
 
     
-    # 
+    # TODO : Add months 
     
     
     
