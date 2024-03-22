@@ -114,7 +114,7 @@ def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***i
     plt.plot(tendency, linewidth=1)
     plt.title(title)
     plt.xlabel(period)
-    plt.ylabel('kWh_{el}')
+    plt.ylabel('kWh_{el}/m2')
     #plt.legend().set_visible(False)
 
     if show_legend == True:
@@ -136,7 +136,7 @@ def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***i
 def filter_and_calculate_mean(row):
     mean = row.mean()
     std_dev = row.std()
-    threshold = 3  # Number of standard deviations beyond which a value is considered an outlier
+    threshold = 2  # Number of standard deviations beyond which a value is considered an outlier
     outliers_mask = (row - mean).abs() > threshold * std_dev
     filtered_row = row[~outliers_mask]
     return filtered_row.mean()
@@ -144,7 +144,7 @@ def filter_and_calculate_mean(row):
 def filter_and_calculate_std(row):
     mean = row.mean()
     std_dev = row.std()
-    threshold = 3  # Number of standard deviations beyond which a value is considered an outlier
+    threshold = 2  # Number of standard deviations beyond which a value is considered an outlier
     outliers_mask = (row - mean).abs() > threshold * std_dev
     filtered_row = row[~outliers_mask]
     return filtered_row.std()
@@ -174,24 +174,69 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
     #Tendency["Mean"] = row_mean
     #Tendency["STD"] = row_std
     
-    Tendency["Mean"]= Tendency.apply(filter_and_calculate_mean, axis=1)
-    Tendency["STD"] = Tendency.apply(filter_and_calculate_std, axis=1)
-    plt.figure()
+    # x axis label 
+    x = Tendency.index
+    #print(x)
+    
+    # Calculate the interval for the DayLocator
+    if period == "day":
+        num_ticks = 12
+        x = x.dt.time
+    elif period == "week":
+        num_ticks = 7
+
+    
+    # 
+    
+    
+    
+    # calculation of metrics
+    Tendency["Mean"]= Tendency.apply(filter_and_calculate_mean, axis=1).copy()
+    Tendency["STD"] = Tendency.apply(filter_and_calculate_std, axis=1).copy()
+    
+    #plotlines 
+    mean = Tendency["Mean"].values
+    std1 = Tendency["Mean"].values+Tendency["STD"].values
+    std3 = Tendency["Mean"].values+ 3 *Tendency["STD"].values
+    
+
+    #
+    fig, ax = plt.subplots()
     
     # plotting stats
-    plt.plot(Tendency["Mean"].values+Tendency["STD"].values, color="blue", alpha=0.3)
-    plt.plot(Tendency["Mean"].values, color="blue")
-    plt.plot(Tendency["Mean"].values-Tendency["STD"].values, color="blue", alpha=0.3)
+    ax.plot(x, std3, color="red", alpha=0.7)
+    ax.plot(x, std1, color="orange", alpha=0.7)
+    ax.plot(x, mean, color="blue")
+    #plt.plot(Tendency["Mean"].values-Tendency["STD"].values, color="blue", alpha=0.3)
+    
+    
+    #fillings 
+    # Shade the area between the lines
+    plt.fill_between(x, mean, std1, color='yellow', alpha=0.3)
+    plt.fill_between(x, std1, std3, color='orange', alpha=0.3)
+    
+        
+    interval = len(x) // num_ticks
+    locator = mdates.DayLocator(interval=interval)
+    plt.gca().xaxis.set_major_locator(locator)
+    
+    # Rotate the x-axis labels for better readability
+    plt.xticks(rotation=45)
     
     #pimping the plot 
     if period == "day":
         plt.title("Mean load profile for " + Typology + " on a daily basis")  
     else :
         plt.title("Mean load profile for " + Typology + " on a " +period+"ly basis")
+        # Customize the x-axis tick labels
+        #ax.xaxis.set_major_locator(mdates.DayLocator(interval))  # Set tick locator to daily intervals
+        #ax.xaxis.set_major_formatter(mdates.DateFormatter('%A'))  # Format tick labels to display weekday 
+   
+   
    
     plt.xlabel(period)
     plt.ylabel("kWh_el")
-    plt.legend(["mean + std", "mean", "mean-std"])
+    plt.legend(["mean + 3 std" ,"mean + std", "mean"])
     plt.grid()
     plt.show()
     
@@ -295,7 +340,7 @@ def plot_typical_week(data_day, typology):
     
     # Customize the x-axis tick labels
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))  # Set tick locator to daily intervals
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%A'))  # Format tick labels to display weekday abbreviation
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%A'))  # Format tick labels to display weekday 
     
     # axis
     plt.xticks(rotation=45)

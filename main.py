@@ -20,6 +20,8 @@ import matplotlib.dates as mdates
 """functions imports"""
 
 import functions as f
+import controls as c
+
 
 """data acquisition"""
 
@@ -83,7 +85,7 @@ Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
 
 for i, (k, v) in enumerate(Building_dict_2023.items()):
     
-    Commune =  Building_dict_2023[k]
+    Commune =  Building_dict_2023[k] #v
 
     for typo in Typo_list: 
         
@@ -135,6 +137,13 @@ plt.show()
 Typology = "Apems"
 Period = "week"
 
+Loads = Typo_loads[Typology]
+plt.plot(Loads.head[:900,:])
+plt.show()
+
+#%%
+
+
 # smoothing calculation
 Loads = Typo_loads[Typology]
 Tendency = f.period_tendencies(Loads, Period)
@@ -143,37 +152,13 @@ Tendency = f.period_tendencies(Loads, Period)
 f.plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
 
 
-#%% seaborn graphic average 24h
-
-"""
-custom_palette = sb.set_palette("deep")
-
-# plot of the 
-sb.lineplot(data=result, linewidth=1, palette=custom_palette, linestyle="solid")
-plt.title('Electric consumptions')
-plt.xlabel('days')
-plt.ylabel('kWh_{el}')
-#plt.legend().set_visible(False)
-plt.legend(title='Custom Legend', loc='upper left')
-plt.show()
-"""
-
-#%% matplotlib graphic average 24h
-
-
-
-#%%Averaging over a week 
-
-
-#%%Averaging over a week 
-
 
 #%% calculating mean and standard deviation for a typical day the year 
 
 
 # parameters to change
 Typology = "Ecole"
-Period = "month"
+Period = "week"
 
 # smoothing calculations
 Loads = Typo_loads[Typology]
@@ -186,39 +171,37 @@ updated_tendency = f.plot_mean_load(Tendency, Period, Typology)
 print(updated_tendency)
 #%% creating a typical day 
 
-data = Typo_loads["Apems"]
-period = "week"
+#data = Typo_loads["Apems"]
+#period = "week"
 
 
-data_day = f.typical_period(data, period)
+data_day = f.typical_period(Loads, Period)
 
-f.plot_typical_week(data_day, "Apems")
+f.plot_typical_week(data_day, Typology)
 
-typical_day_schools = f.typical_period(data, period)
+typical_day_schools = f.typical_period(Loads, Period)
 
-f.plot_mean_load(typical_day_schools, "week", "Schools")
+f.plot_mean_load(typical_day_schools, Period, Typology)
 
 #%% creating a typical week
 
-data = Typo_loads["Apems"]
-period = "week"
+#data = Typo_loads["Apems"]
+#period = "week"
 
 
-data_day = f.typical_period(data, period)
+data_day = f.typical_period(Loads, Period)
 
-
-
-f.plot_typical_week(data_day, "Apems")
+f.plot_typical_week(data_day, Typology)
 
 #%% test 
-tendency = f.period_tendencies(Typo_loads["Apems"], period)
+tendency = f.period_tendencies(Loads, Period)
 
 
 
 #%%
 
-f.plot_tendency(tendency, title="Load curve weekly averaeg for Schools", period=period, show_legend=True)
-f.plot_mean_load(tendency, period=period, Typology="Apems")
+f.plot_tendency(tendency, title="Load curve weekly average for "+Typology+"s", period=Period, show_legend=True)
+f.plot_mean_load(tendency, period=Period, Typology=Typology)
 
 
 #%%
