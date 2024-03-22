@@ -80,7 +80,6 @@ def period_tendencies(df, period="week"):
     
     # Concatenate the averages into a single DataFrame
     result = pd.concat(averages, axis=1).T
-    
     # Print the result
     print(result)
     
@@ -175,21 +174,28 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
     #Tendency["STD"] = row_std
     
     # x axis label 
-    x = Tendency.index.copy()
-    # Check the type of index
-    print(type(x))
+    x = Tendency.index.tolist()
+    
+    
+    #datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in x]
+    #time_list = [dt.time().strftime("%H:%M") for dt in datetime_list]
 
-    #print(x)
     
     # Calculate the interval for the DayLocator
     if period == "day":
         num_ticks = 12
+        # Replace existing indices with hours and minutes
+        #Tendency.index = Tendency.index.strftime('%H:%M')
+       # datetime_list =  Tendency.index.tolist()
+        #time_list = [dt.strftime('%H:%M') for dt in datetime_list]
+        
     elif period == "week":
         num_ticks = 7
+       # datetime_list = Tendency.index.tolist()
+       # time_list = [dt.strftime("%Y-%m-%d %H:%M:%S") for dt in datetime_list]
 
     
     # TODO : Add months 
-    
     
     
     # calculation of metrics

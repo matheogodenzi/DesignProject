@@ -136,11 +136,6 @@ plt.show()
 # parameters to change
 Typology = "Apems"
 Period = "week"
-
-Loads = Typo_loads[Typology]
-plt.plot(Loads.head[:900,:])
-plt.show()
-
 #%%
 
 

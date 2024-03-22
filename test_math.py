@@ -137,12 +137,6 @@ plt.show()
 Typology = "Apems"
 Period = "week"
 
-Loads = Typo_loads[Typology]
-plt.plot(Loads.head[:900,:])
-plt.show()
-
-#%%
-
 
 # smoothing calculation
 Loads = Typo_loads[Typology]
