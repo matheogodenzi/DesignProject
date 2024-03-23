@@ -77,11 +77,11 @@ def period_tendencies(df, period="week"):
         chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
         chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
         averages.append(chunk_avg)  # Append the averages to the list
-    
+    print("averages : \n", averages)
     # Concatenate the averages into a single DataFrame
     result = pd.concat(averages, axis=1).T
     # Print the result
-    print(result)
+    #print(result)
     
     return result
 
@@ -149,7 +149,7 @@ def filter_and_calculate_std(row):
     return filtered_row.std()
 
 
-def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologie"):
+def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Typologie"):
     """
     
 
@@ -212,16 +212,17 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
     fig, ax = plt.subplots()
     
     # plotting stats
-    ax.plot(x, std3, color="red", alpha=0.7)
-    ax.plot(x, std1, color="orange", alpha=0.7)
-    ax.plot(x, mean, color="blue")
+    ax.plot(x, Load, color="r", alpha=1, linestyle='solid', linewidth=2)
+    ax.plot(x, std3, color="b", alpha=0.4, linestyle=':', linewidth=2)
+    ax.plot(x, std1, color="mediumblue", alpha=0.4, linestyle='--', linewidth=2)
+    ax.plot(x, mean, color="darkblue", alpha=0.7, linewidth=2)
     #plt.plot(Tendency["Mean"].values-Tendency["STD"].values, color="blue", alpha=0.3)
     
     
     #fillings 
     # Shade the area between the lines
-    plt.fill_between(x, mean, std1, color='yellow', alpha=0.3)
-    plt.fill_between(x, std1, std3, color='orange', alpha=0.3)
+    plt.fill_between(x, mean, std1, color='darkblue', alpha=0.4)
+    plt.fill_between(x, std1, std3, color='mediumblue', alpha=0.3)
     
         
     interval = len(x) // num_ticks
@@ -243,8 +244,8 @@ def plot_mean_load(Tendency, period="Specify period", Typology="Specify Typologi
    
    
     plt.xlabel(period)
-    plt.ylabel("kWh_el")
-    plt.legend(["mean + 3 std" ,"mean + std", "mean"])
+    plt.ylabel(r"$kWh_{el}/m^2$")
+    plt.legend([Load.iloc[:, 0].name, "mean + 3 std" ,"mean + std", "mean"], fontsize=8)
     plt.grid()
     plt.show()
     
@@ -378,6 +379,7 @@ def plot_typical_week(data_day, typology):
 if __name__ == "__main__":
     
     print("testing functions !")
+    print(plt.style.available)
 
 
 

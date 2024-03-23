@@ -158,11 +158,15 @@ Period = "day"
 Loads = Typo_loads[Typology]
 Tendency = f.period_tendencies(Loads, Period)
 
+single_load = Typo_loads[Typology].iloc[:, 6].to_frame()
+print(single_load)
+
+smoothed_load = f.period_tendencies(single_load, Period)
 # plotting 
-updated_tendency = f.plot_mean_load(Tendency, Period, Typology)
+updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
 
 #verifying that the mean and standard deviation have their own columns in the output
-print(updated_tendency)
+#print(updated_tendency)
 #%% creating a typical day 
 
 #data = Typo_loads["Apems"]
