@@ -135,7 +135,7 @@ def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***i
 def filter_and_calculate_mean(row):
     mean = row.mean()
     std_dev = row.std()
-    threshold = 3  # Number of standard deviations beyond which a value is considered an outlier
+    threshold = 2  # Number of standard deviations beyond which a value is considered an outlier
     outliers_mask = (row - mean).abs() > threshold * std_dev
     filtered_row = row[~outliers_mask]
     return filtered_row.mean()
@@ -143,7 +143,7 @@ def filter_and_calculate_mean(row):
 def filter_and_calculate_std(row):
     mean = row.mean()
     std_dev = row.std()
-    threshold = 3 # Number of standard deviations beyond which a value is considered an outlier
+    threshold = 2 # Number of standard deviations beyond which a value is considered an outlier
     outliers_mask = (row - mean).abs() > threshold * std_dev
     filtered_row = row[~outliers_mask]
     return filtered_row.std()
@@ -192,9 +192,6 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
     
     elif period=="month":
         num_ticks = 12
-
-    
-    # TODO : Add months 
     
     
     # calculation of metrics

@@ -136,8 +136,8 @@ plt.show()
 
 
 # parameters to change
-Typology = "Apems"
-Period = "month"
+Typology = "Ecole"
+Period = "day"
 
 # smoothing calculations
 Loads = Typo_loads[Typology]
@@ -145,7 +145,7 @@ Tendency = f.period_tendencies(Loads, Period)
 
 
 #extracting 1 single load to compare with the benchmark and giving it the same smoothness 
-single_load = Typo_loads[Typology].iloc[:, 0].to_frame()
+single_load = Typo_loads[Typology].iloc[:, 4].to_frame()
 #print(single_load)
 smoothed_load = f.period_tendencies(single_load, Period)
 
@@ -156,34 +156,9 @@ updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
 #%% creating a typical period 
 typical_day_schools = f.typical_period(Loads, Period)
 
-Load1 = typical_day_schools.iloc[:, 3].to_frame()
+Load1 = typical_day_schools.iloc[:, 4].to_frame()
 
 f.plot_mean_load(Load1, typical_day_schools, Period, Typology)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -227,6 +202,53 @@ f.plot_typical_week(data_week, Typology)
 
 #weekly smoothing along the year for all insfrastrctures 
 f.plot_tendency(tendency_week, title="Load curve weekly average for "+Typology+"s", period=Period, show_legend=True)
+
+
+#%% auto-analysis
+
+
+def extract_period(df, start_date, end_date):
+    
+    
+    df.index = pd.to_datetime(df.index)
+    period = df.loc[start_date:end_date]
+    print(f'period : \n {period}')
+    
+    return period
+
+Typology = "Ecole"
+Period = "week"
+
+# smoothing calculations
+Loads = Typo_loads[Typology]
+
+typical_week = f.typical_period(Loads, Period)
+
+
+#extracting 1 single load to compare with the benchmark and giving it the same smoothness 
+single_load = Typo_loads[Typology].iloc[:, 6].to_frame()
+#print(single_load)
+interest_period = extract_period(single_load, pd.to_datetime("15.01.2023 00:15:00"), pd.to_datetime("22.01.2023 00:00:00"))
+
+# plotting 
+updated_tendency = f.plot_mean_load(interest_period, typical_week, Period, Typology)
+
+#%%
+
+
+
+def extract_time(df, datetime):
+
+    # Extract instances at midnight
+    midnight_instances = df[df.index.time == datetime.time()]
+    print(f'time : \n {midnight_instances}')
+    return midnight_instances
+
+time_of_interest = extract_time(Load1, pd.Timestamp('00:00:00'))
+
+
+
+
 
 
 
