@@ -135,7 +135,7 @@ def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***i
 def filter_and_calculate_mean(row):
     mean = row.mean()
     std_dev = row.std()
-    threshold = 2  # Number of standard deviations beyond which a value is considered an outlier
+    threshold = 3  # Number of standard deviations beyond which a value is considered an outlier
     outliers_mask = (row - mean).abs() > threshold * std_dev
     filtered_row = row[~outliers_mask]
     return filtered_row.mean()
@@ -143,13 +143,13 @@ def filter_and_calculate_mean(row):
 def filter_and_calculate_std(row):
     mean = row.mean()
     std_dev = row.std()
-    threshold = 2  # Number of standard deviations beyond which a value is considered an outlier
+    threshold = 3 # Number of standard deviations beyond which a value is considered an outlier
     outliers_mask = (row - mean).abs() > threshold * std_dev
     filtered_row = row[~outliers_mask]
     return filtered_row.std()
 
 
-def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Typologie"):
+def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Typologie", xaxis="specify label"):
     """
     
 
@@ -174,11 +174,7 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
     #Tendency["STD"] = row_std
     
     # x axis label 
-    x = Tendency.index.tolist()
-    
-    
-    #datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in x]
-    #time_list = [dt.time().strftime("%H:%M") for dt in datetime_list]
+    x = Tendency.index
 
     
     # Calculate the interval for the DayLocator
@@ -193,6 +189,9 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
         num_ticks = 7
        # datetime_list = Tendency.index.tolist()
        # time_list = [dt.strftime("%Y-%m-%d %H:%M:%S") for dt in datetime_list]
+    
+    elif period=="month":
+        num_ticks = 12
 
     
     # TODO : Add months 
@@ -212,10 +211,11 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
     fig, ax = plt.subplots()
     
     # plotting stats
-    ax.plot(x, Load, color="r", alpha=1, linestyle='solid', linewidth=2)
-    ax.plot(x, std3, color="b", alpha=0.4, linestyle=':', linewidth=2)
-    ax.plot(x, std1, color="mediumblue", alpha=0.4, linestyle='--', linewidth=2)
-    ax.plot(x, mean, color="darkblue", alpha=0.7, linewidth=2)
+    ax.plot(x, std3, color="b", alpha=0.2, linestyle=':', linewidth=1, label="anomaly threshold")
+    ax.plot(x, std1, color="mediumblue", alpha=0.2, linestyle='--', linewidth=1, label="surveillance treshold")
+    ax.plot(x, mean, color="darkblue", alpha=0.4, linewidth=1, label="Typology mean")
+    if Load is not None:
+        ax.plot(x, Load, color="black", alpha=1, linestyle='solid', linewidth=2, label= Load.columns[0])
     #plt.plot(Tendency["Mean"].values-Tendency["STD"].values, color="blue", alpha=0.3)
     
     
@@ -243,9 +243,9 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
    
    
    
-    plt.xlabel(period)
+    plt.xlabel(xaxis)
     plt.ylabel(r"$kWh_{el}/m^2$")
-    plt.legend([Load.iloc[:, 0].name, "mean + 3 std" ,"mean + std", "mean"], fontsize=8)
+    plt.legend(fontsize=8)
     plt.grid()
     plt.show()
     
