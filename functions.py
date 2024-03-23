@@ -77,7 +77,7 @@ def period_tendencies(df, period="week"):
         chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
         chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
         averages.append(chunk_avg)  # Append the averages to the list
-    print("averages : \n", averages)
+    #print("averages : \n", averages)
     # Concatenate the averages into a single DataFrame
     result = pd.concat(averages, axis=1).T
     # Print the result
