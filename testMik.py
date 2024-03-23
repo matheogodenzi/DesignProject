@@ -161,7 +161,7 @@ f.plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
 
 
 # parameters to change
-Typology = "Apems"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -208,10 +208,46 @@ f.plot_tendency(tendency, title="Load curve weekly average for "+Typology+"s", p
 f.plot_mean_load(tendency, period=Period, Typology=Typology)
 
 
-#%% total cons control
+#%% total consumption control
 
-tested_curve = Loads.iloc[:,3].to_frame()
+tested_curve = Loads.iloc[:,0].to_frame()
 
-total_cons_tested = c.total_cons_ctrl(tested_curve, Loads, Period)
-print(c.total_cons_ctrl(tested_curve, Loads, Period))
+granulo = "day"
 
+total_cons_tested = c.total_cons_ctrl(tested_curve, Loads, granulo)
+print(total_cons_tested)
+
+
+print()
+#%% calculating mean and standard deviation for a typical day the year 
+
+
+# parameters to change
+Typology = "Apems"
+Period = "week"
+
+# smoothing calculations
+Loads = Typo_loads[Typology]
+Tendency = f.period_tendencies(Loads, Period)
+
+
+#extracting 1 single load to compare with the benchmark and giving it the same smoothness 
+single_load = Loads.iloc[:, 0].to_frame()
+#print(single_load)
+smoothed_load = f.period_tendencies(single_load, Period)
+
+
+# plotting 
+#updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
+updated_tendency = c.plot_mean_load_control(smoothed_load, Tendency, Period, Typology)
+
+
+#%% typical week total consum
+
+#data = Typo_loads["Apems"]
+#period = "week"
+
+
+data_day = f.typical_period(Loads, Period)
+
+f.plot_typical_week(data_day, Typology)
