@@ -192,6 +192,9 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
     
     elif period=="month":
         num_ticks = 12
+        
+    elif period=="year":
+        num_ticks = 12
     
     
     # calculation of metrics
@@ -221,7 +224,21 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
     plt.fill_between(x, mean, std1, color='darkblue', alpha=0.4)
     plt.fill_between(x, std1, std3, color='mediumblue', alpha=0.3)
     
+    """
+    if period == "day":
+        plt.gca().xaxis.set_major_formatter(lambda x, pos: pd.to_datetime(x).strftime('%H:%M'))
         
+    elif period == "week":
+       plt.gca().xaxis.set_major_formatter(lambda x, pos: pd.to_datetime(x).strftime('%A'))
+
+    elif period=="month":
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%B'))
+        
+    elif period=="year":
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%B'))
+    """
+    
+    
     interval = len(x) // num_ticks
     locator = mdates.DayLocator(interval=interval)
     plt.gca().xaxis.set_major_locator(locator)
@@ -250,61 +267,41 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
 
 
 def typical_period(df, period):
-    """
     
-
-    Parameters
-    ----------
-    df : TYPE
-        DESCRIPTION.
-    period : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    period_df : TYPE
-        DESCRIPTION.
-
-    """
-    
-    day_nbr = 365
+    day_nbr = int(df.shape[0]/4/24)
     week_days = 7
     month_days = 30
-    week_nbr = day_nbr//week_days
-    month_nbr = day_nbr//month_days
+    year_days = 365
+    week_nbr = day_nbr // week_days
+    month_nbr = day_nbr // month_days
+    year_nbr = day_nbr // year_days
     
     if period == "day":
         intervals = day_nbr
-        
-        for i in range(intervals):
-            if i == 0: 
-                period_df = df.iloc[:96, :]
-            else: 
-                period_df += df.iloc[(i-1)*96:i*96, :].values
-        
-    
-    if period == "week":
+        period_length = 96  # Number of data points in a day
+    elif period == "week":
         intervals = week_nbr
-        
-        for i in range(intervals):
-            if i == 0: 
-                period_df = df.iloc[:96*week_days, :]
-            else: 
-                period_df += df.iloc[(i-1)*96*week_days:i*96*week_days, :].values
-        
-        
-    if period == "month":
+        period_length = 96 * week_days  # Number of data points in a week
+    elif period == "month":
         intervals = month_nbr
+        period_length = 96 * month_days  # Number of data points in a month
+    elif period == "year":
+        intervals = year_nbr
+        period_length = 96 * year_days  # Number of data points in a year
     
-        for i in range(intervals):
-            if i == 0: 
-                period_df = df.iloc[:96*month_days, :]
-            else:
-                period_df += df.iloc[(i-1)*96*month_days:i*96*month_days, :].values
+    # Initialize period_df with zeros to accumulate data
+    period_df = df.iloc[:period_length, :].copy()
     
+    for i in range(1,intervals):
+        try:
+            period_df += df.iloc[i * period_length : (i + 1) * period_length, :].values
+            #print(period_df)
+        except ValueError:
+            print("ValueError occurred during iteration. Skipping this interval.")
     period_df /= intervals
     
     return period_df
+
 
 
 

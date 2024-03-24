@@ -21,6 +21,8 @@ import matplotlib.dates as mdates
 
 import functions as f
 import controls as c
+import auto_analysis as aa
+import process_data as p
 
 
 """data acquisition"""
@@ -71,7 +73,7 @@ LoadCurve_2023_dict = {f.get_variable_name(Commune_paths[i], globals()): load_da
 LoadCurve_2022_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2022[i] for i in range(len(Commune_paths))}
 Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building_data_2023[i] for i in range(len(Commune_paths))}
 
-#%% get all typologies sorted 
+#%% get all typologies sorted for all provided year 
 
 #School_loads =[]
 #Culture_loads = []
@@ -80,56 +82,20 @@ Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building
 #Bar_loads =[]
 #Parkinglot_loads =[]
 
-Typo_loads = {}
 Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
 
-for i, (k, v) in enumerate(Building_dict_2023.items()):
-    
-    Commune =  Building_dict_2023[k] #v
+#getting typologies from 2022
+Typo_loads_2022 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
 
-    for typo in Typo_list: 
-        
-        Building_ID = Commune[Commune["Typo"]== typo]
-        ID_list = Building_ID["Référence"].tolist()
-        surface_list = Building_ID["Surface"].tolist()
-        address_list = Building_ID["Emplacement"].tolist()
-        Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
-        load_selected = LoadCurve_2023_dict[k][Complete_IDs]
-        
-        #linking surface to ID
-        surf_id_dict = {k: v for k, v in zip(Complete_IDs, surface_list)}
-        address_id_dict = {k: v for k, v in zip(Complete_IDs, address_list)}
-        
-        for col_name in load_selected.columns:
-            load_selected /= surf_id_dict[col_name]
-        
-        if i== 0:
-            Typo_loads[typo] = load_selected.copy()
-        else : 
-            df = Typo_loads[typo].copy() 
-            df[Complete_IDs] = load_selected.loc[:,Complete_IDs]
-            Typo_loads[typo] = df
-        
-        #renaming columns with adresses 
-        Typo_loads[typo].rename(columns=address_id_dict, inplace=True)
-            
+#getting typologies from 2023
+Typo_loads_2023 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
+
+# creating overall dictionnary
+Typo_all_loads = {}
+for typo in Typo_list:
+    Typo_all_loads[typo] = pd.concat([Typo_loads_2022[typo], Typo_loads_2023[typo]], axis=0)
     
 #print(Typo_loads)
-
-
-#%% Plotting typologies 
-
-"""
-custom_palette = sb.set_palette("deep")
-
-# plot of the 
-sb.lineplot(data=Typo_loads["Commune"].head(900), linewidth=0.5, palette=custom_palette)
-plt.title('Electric consumptions')
-plt.xlabel('dates')
-plt.ylabel('kWh_{el}')
-plt.legend().set_visible(False)
-plt.show()
-"""
 
 
 #%% calculating mean and standard deviation for a typical day the year 
@@ -140,12 +106,12 @@ Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
-Loads = Typo_loads[Typology]
+Loads = Typo_all_loads[Typology]
 Tendency = f.period_tendencies(Loads, Period)
 
 
 #extracting 1 single load to compare with the benchmark and giving it the same smoothness 
-single_load = Typo_loads[Typology].iloc[:, 4].to_frame()
+single_load = Typo_all_loads[Typology].iloc[:, 4].to_frame()
 #print(single_load)
 smoothed_load = f.period_tendencies(single_load, Period)
 
@@ -153,19 +119,25 @@ smoothed_load = f.period_tendencies(single_load, Period)
 # plotting 
 updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
 
-#%% creating a typical period 
-typical_day_schools = f.typical_period(Loads, Period)
+#%% creating a benchmark over available years
 
-Load1 = typical_day_schools.iloc[:, 4].to_frame()
+# Obtain a typical year
+typical_year = f.typical_period(Loads,  "year")
 
-f.plot_mean_load(Load1, typical_day_schools, Period, Typology)
+#%% Obtain a typical day from benchmarked typical year
+typical_day = f.typical_period(typical_year, Period)
+
+#%% plotting one specific load over given benchmark 
+
+Load1 = typical_day.iloc[:, 4].to_frame()
+f.plot_mean_load(Load1, typical_day, Period, Typology)
 
 
 
 #%% test of plotting benchark averages alone 
 
 # Annual weekly smoothing of the loag curve
-tendency = f.period_tendencies(Loads, Period)
+tendency = f.period_tendencies(typical_year, Period)
 
 f.plot_mean_load(None, tendency, period=Period, Typology=Typology)
 
@@ -204,48 +176,32 @@ f.plot_typical_week(data_week, Typology)
 f.plot_tendency(tendency_week, title="Load curve weekly average for "+Typology+"s", period=Period, show_legend=True)
 
 
-#%% auto-analysis
+#%% extraction of a given week 
 
-
-def extract_period(df, start_date, end_date):
-    
-    
-    df.index = pd.to_datetime(df.index)
-    period = df.loc[start_date:end_date]
-    print(f'period : \n {period}')
-    
-    return period
 
 Typology = "Ecole"
 Period = "week"
 
 # smoothing calculations
-Loads = Typo_loads[Typology]
+Loads = Typo_all_loads[Typology]
 
 typical_week = f.typical_period(Loads, Period)
 
 
 #extracting 1 single load to compare with the benchmark and giving it the same smoothness 
-single_load = Typo_loads[Typology].iloc[:, 6].to_frame()
+single_load = Typo_all_loads[Typology].iloc[:, 6].to_frame()
 #print(single_load)
-interest_period = extract_period(single_load, pd.to_datetime("15.01.2023 00:15:00"), pd.to_datetime("22.01.2023 00:00:00"))
+interest_period = aa.extract_period(single_load, pd.to_datetime("15.01.2023 00:15:00"), pd.to_datetime("22.01.2023 00:00:00"))
 
 # plotting 
 updated_tendency = f.plot_mean_load(interest_period, typical_week, Period, Typology)
 
-#%%
+#%% Extracting all instances of the same exact time
+
+time_of_interest = aa.extract_time(Load1, pd.Timestamp('00:00:00'))
 
 
-
-def extract_time(df, datetime):
-
-    # Extract instances at midnight
-    midnight_instances = df[df.index.time == datetime.time()]
-    print(f'time : \n {midnight_instances}')
-    return midnight_instances
-
-time_of_interest = extract_time(Load1, pd.Timestamp('00:00:00'))
-
+#%% align years
 
 
 
