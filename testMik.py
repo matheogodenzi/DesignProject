@@ -244,12 +244,12 @@ updated_tendency = c.plot_mean_load_control(smoothed_load, Tendency, Period, Typ
 
 
 
-#%%
+#%% yearly_consumption computation
 
-yearly_sum = Loads.sum().to_frame().T
-yearly_sum["Mean"]= yearly_sum.apply(f.filter_and_calculate_mean, axis=1).copy()
-yearly_sum["STD"] = yearly_sum.apply(f.filter_and_calculate_std,axis=1).copy()
-print(yearly_sum)
+
+single_load = Loads.iloc[:,2].to_frame()
+
+print(c.quarterly_consumption(single_load, Loads))
 
 
 #%% typical week total consum
