@@ -175,9 +175,22 @@ def plot_mean_load_control(Load, Tendency, granulo="Specify granulotmetry", Typo
 
 
 
+#%%
+
+def yearly_consumption(Load, df):
+    # computing metrics
+    yearly_sum = df.sum()
+    yearly_sum["Mean"]= yearly_sum.apply(f.filter_and_calculate_mean, axis=1).copy()
+    yearly_sum["STD"] = yearly_sum.apply(f.filter_and_calculate_std, axis=1).copy()
+
+
+    return
 
 
 
+
+
+#%%
 # Example usage or tests
 if __name__ == "__main__":
     

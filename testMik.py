@@ -143,7 +143,7 @@ plt.show()
 #%% Averaging over a a given period (smoothing of the curve)
 
 # parameters to change
-Typology = "Apems"
+Typology = "Culture"
 Period = "week"
 #%%
 
@@ -223,7 +223,7 @@ print()
 
 
 # parameters to change
-Typology = "Apems"
+Typology = "Ecole"
 Period = "week"
 
 # smoothing calculations
@@ -232,7 +232,7 @@ Tendency = f.period_tendencies(Loads, Period)
 
 
 #extracting 1 single load to compare with the benchmark and giving it the same smoothness 
-single_load = Loads.iloc[:, 0].to_frame()
+single_load = Loads.iloc[:,4].to_frame()
 #print(single_load)
 smoothed_load = f.period_tendencies(single_load, Period)
 
@@ -240,6 +240,16 @@ smoothed_load = f.period_tendencies(single_load, Period)
 # plotting 
 #updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
 updated_tendency = c.plot_mean_load_control(smoothed_load, Tendency, Period, Typology)
+
+
+
+
+#%%
+
+yearly_sum = Loads.sum().to_frame().T
+yearly_sum["Mean"]= yearly_sum.apply(f.filter_and_calculate_mean, axis=1).copy()
+yearly_sum["STD"] = yearly_sum.apply(f.filter_and_calculate_std,axis=1).copy()
+print(yearly_sum)
 
 
 #%% typical week total consum
