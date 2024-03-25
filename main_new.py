@@ -48,6 +48,7 @@ Commune_paths = [renens, ecublens, crissier, chavannes]
 load_data_2023 = []
 load_data_2022 = []
 building_data_2023 = []
+pv_2022 = []
 
 
 for i, commune in enumerate(Commune_paths):
@@ -55,9 +56,12 @@ for i, commune in enumerate(Commune_paths):
     # extracting load curves 
     load_2023 = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=2)
     load_2023.set_index("Date", inplace=True)
-    load_2022 = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_cch_podvert_2022.xlsx", sheet_name=2)
+    load_2022 = pd.read_excel(commune +"_cch_podvert_2022.xlsx", sheet_name=2)
     load_2022.set_index("Date", inplace=True)
     
+    if os.path.exists(commune +  "\\" + f.get_variable_name(commune, globals()) + "_cch_plus_20MWh_complement"):
+        pv_prod_2022 = pd.read_excel(commune +  "\\" + f.get_variable_name(commune, globals()) + "_cch_plus_20MWh_complement")
+        pv_prod_2022.set_index("Date", inplace=True)
     
     # extracting buildings
     buildings = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=0)
@@ -67,12 +71,16 @@ for i, commune in enumerate(Commune_paths):
     load_data_2022.append(load_2022)
     
     building_data_2023.append(buildings)
+    
+    pv_2022.append(pv_prod_2022)
 
 
 LoadCurve_2023_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2023[i] for i in range(len(Commune_paths))}
 LoadCurve_2022_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2022[i] for i in range(len(Commune_paths))}
 Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building_data_2023[i] for i in range(len(Commune_paths))}
+pv_2022_dict = {f.get_variable_name(Commune_paths[i], globals()): pv_2022[i] for i in range(len(Commune_paths))}
 
+print(pv_2022_dict)
 #%% get all typologies sorted for all provided year 
 
 #School_loads =[]
@@ -191,7 +199,7 @@ typical_week = f.typical_period(Loads, Period)
 #extracting 1 single load to compare with the benchmark and giving it the same smoothness 
 single_load = Typo_all_loads[Typology].iloc[:, 6].to_frame()
 #print(single_load)
-interest_period = aa.extract_period(single_load, pd.to_datetime("15.01.2023 00:15:00"), pd.to_datetime("22.01.2023 00:00:00"))
+interest_period = aa.extract_period(single_load, pd.to_datetime("14.01.2023 00:15:00"), pd.to_datetime("21.01.2023 00:00:00"))
 
 # plotting 
 updated_tendency = f.plot_mean_load(interest_period, typical_week, Period, Typology)
