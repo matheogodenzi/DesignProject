@@ -179,15 +179,62 @@ def plot_mean_load_control(Load, Tendency, granulo="Specify granulotmetry", Typo
 
 def yearly_consumption(Load, df):
     # computing metrics
-    yearly_sum = df.sum()
-    yearly_sum["Mean"]= yearly_sum.apply(f.filter_and_calculate_mean, axis=1).copy()
-    yearly_sum["STD"] = yearly_sum.apply(f.filter_and_calculate_std, axis=1).copy()
+    df_yearly_sum = df.sum().to_frame().T
+    df_yearly_sum["Mean"]= df_yearly_sum.apply(f.filter_and_calculate_mean, axis=1).copy()
+    df_yearly_sum["STD"] = df_yearly_sum.apply(f.filter_and_calculate_std, axis=1).copy()
+    
+    # comparing the Load
+    load_yearly_sum = Load.sum().to_frame().T
+    load_yearly_sum["ratio_to_mean"] = load_yearly_sum.iloc[0,0]/df_yearly_sum["Mean"]
+    load_yearly_sum["ratio_to_std"] = (load_yearly_sum.iloc[0,0]- df_yearly_sum["Mean"])/df_yearly_sum["STD"]
+    
+    return load_yearly_sum
 
 
-    return
+#%%
+def quarterly_consumption(Load, df):
+    # List to store quarterly results
+    quarterly_results = []
 
+    # Number of entries per quarter (assuming each month has 30 days)
+    days_per_quarter = 90
+    entries_per_day = 24 * 4  # Assuming 15-minute intervals
 
+    # Calculate number of entries per quarter
+    total_entries_per_quarter = days_per_quarter * entries_per_day
 
+    # Determine the total number of days in the dataset
+    total_days = len(df) // entries_per_day
+
+    # Iterate over the DataFrame in chunks of 90 days (or the nearest approximation)
+    for i in range(0, total_days, days_per_quarter):
+        # Calculate the end index for the current quarter
+        end_index = min((i + days_per_quarter) * entries_per_day, len(df))
+
+        # Check if the end index exceeds the length of the DataFrame
+        if end_index >= len(df):
+            break  # Break out of the loop if we've reached the end of the data
+
+        # Slice the DataFrame for the current quarter
+        quarterly_df = df.iloc[i * entries_per_day:end_index]
+
+        # Computing metrics for the quarterly DataFrame
+        quarterly_sum = quarterly_df.sum().to_frame().T
+        quarterly_sum["Mean"] = quarterly_sum.apply(f.filter_and_calculate_mean, axis=1).copy()
+        quarterly_sum["STD"] = quarterly_sum.apply(f.filter_and_calculate_std, axis=1).copy()
+
+        # Comparing the Load for the quarterly DataFrame
+        quarterly_load_sum = Load.iloc[i * entries_per_day:end_index].sum().to_frame().T
+        quarterly_load_sum["ratio_to_mean"] = quarterly_load_sum.iloc[0, 0] / quarterly_sum["Mean"]
+        quarterly_load_sum["ratio_to_std"] = (quarterly_load_sum.iloc[0, 0] - quarterly_sum["Mean"]) / quarterly_sum["STD"]
+
+        # Append the results for this quarter to the list
+        quarterly_results.append(quarterly_load_sum)
+
+    # Concatenate the results for all quarters into a single DataFrame
+    quarterly_consumption_result = pd.concat(quarterly_results)
+
+    return quarterly_consumption_result
 
 
 #%%
