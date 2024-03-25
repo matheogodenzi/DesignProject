@@ -36,10 +36,10 @@ parent_directory = os.path.dirname(current_script_path)
 
 
 ## Creating specificpath for each commune
-renens = parent_directory + "\Renens"
-ecublens = parent_directory + "\Ecublens"
-crissier = parent_directory + "\Crissier"
-chavannes = parent_directory + "\Chavannes"
+renens = parent_directory + "\\Renens"
+ecublens = parent_directory + "\\Ecublens"
+crissier = parent_directory + "\\Crissier"
+chavannes = parent_directory + "\\Chavannes"
 
 Commune_paths = [renens, ecublens, crissier, chavannes]
 
@@ -56,13 +56,31 @@ for i, commune in enumerate(Commune_paths):
     # extracting load curves 
     load_2023 = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=2)
     load_2023.set_index("Date", inplace=True)
-    load_2022 = pd.read_excel(commune +"_cch_podvert_2022.xlsx", sheet_name=2)
+    load_2022 = pd.read_excel(commune+"\\"+ f.get_variable_name(commune, globals()) +"_cch_podvert_2022.xlsx", sheet_name=2)
     load_2022.set_index("Date", inplace=True)
     
-    if os.path.exists(commune +  "\\" + f.get_variable_name(commune, globals()) + "_cch_plus_20MWh_complement"):
-        pv_prod_2022 = pd.read_excel(commune +  "\\" + f.get_variable_name(commune, globals()) + "_cch_plus_20MWh_complement")
-        pv_prod_2022.set_index("Date", inplace=True)
+    given_file ="\\" + f.get_variable_name(commune, globals()) + "_cch_plus_20MWh_complement"
+    pv_commune = []
+    for root, dirs, files in os.walk(commune):
+        if given_file in files: 
+            file_path = os.path.join(root, given_file)
+            try:
+                # Read the Excel file using pandas
+                pv_prod_2022 = pd.read_excel(file_path)
+                pv_prod_2022.set_index("Date", inplace=True)
+                # Perform actions with the DataFrame 'df'
+                print(f"Successfully read {given_file} in {root}.")
+                # Add more code to work with the DataFrame if needed
+                pv_2022.append(pv_prod_2022)
+                pv_commune.append(f.get_variable_name(commune, globals()))
+            except Exception as e:
+                # Handle any exceptions raised during reading or processing
+                print(f"An error occurred while reading {given_file} in {root}: {e}")
+        else:
+            print(f"{given_file} not found in {root}.")
+            # Add code to handle this case or simply pass
     
+        
     # extracting buildings
     buildings = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=0)
     
@@ -71,14 +89,12 @@ for i, commune in enumerate(Commune_paths):
     load_data_2022.append(load_2022)
     
     building_data_2023.append(buildings)
-    
-    pv_2022.append(pv_prod_2022)
 
 
 LoadCurve_2023_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2023[i] for i in range(len(Commune_paths))}
 LoadCurve_2022_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2022[i] for i in range(len(Commune_paths))}
 Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building_data_2023[i] for i in range(len(Commune_paths))}
-pv_2022_dict = {f.get_variable_name(Commune_paths[i], globals()): pv_2022[i] for i in range(len(Commune_paths))}
+pv_2022_dict = {pv_commune[i]: pv_2022[i] for i in range(len(pv_commune))}
 
 print(pv_2022_dict)
 #%% get all typologies sorted for all provided year 

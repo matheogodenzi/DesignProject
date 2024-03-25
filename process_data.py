@@ -54,7 +54,7 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list):
     
         for typo in Typo_list: 
             
-            Building_ID = Commune[Commune["Typo"]== typo]
+            Building_ID = Commune[Commune["Typo"]==typo]
             ID_list = Building_ID["Référence"].tolist()
             surface_list = Building_ID["Surface"].tolist()
             address_list = Building_ID["Emplacement"].tolist()
