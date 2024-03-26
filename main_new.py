@@ -106,7 +106,7 @@ print(pv_2022_dict)
 #Bar_loads =[]
 #Parkinglot_loads =[]
 
-Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
+Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Commune2", "Buvette", "Parking"]
 
 #getting typologies from 2022
 Typo_loads_2022 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)

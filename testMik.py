@@ -90,7 +90,7 @@ Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building
 #Parkinglot_loads =[]
 
 Typo_loads = {}
-Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
+Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Commune2", "Buvette", "Parking"]
 
 for i, (k, v) in enumerate(Building_dict_2023.items()):
     
@@ -161,8 +161,8 @@ f.plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
 
 
 # parameters to change
-Typology = "Ecole"
-Period = "day"
+Typology = "Commune2"
+Period = "week"
 
 # smoothing calculations
 Loads = Typo_loads[Typology]
@@ -210,20 +210,18 @@ f.plot_mean_load(tendency, period=Period, Typology=Typology)
 
 #%% total consumption control
 
-tested_curve = Loads.iloc[:,0].to_frame()
+tested_curve = Loads.iloc[:,1].to_frame()
 
 granulo = "day"
 
 total_cons_tested = c.total_cons_ctrl(tested_curve, Loads, granulo)
 print(total_cons_tested)
 
-
-print()
 #%% calculating mean and standard deviation for a typical day the year 
 
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune2"
 Period = "week"
 
 # smoothing calculations
@@ -232,7 +230,7 @@ Tendency = f.period_tendencies(Loads, Period)
 
 
 #extracting 1 single load to compare with the benchmark and giving it the same smoothness 
-single_load = Loads.iloc[:,4].to_frame()
+single_load = Loads.iloc[:,2].to_frame()
 #print(single_load)
 smoothed_load = f.period_tendencies(single_load, Period)
 
