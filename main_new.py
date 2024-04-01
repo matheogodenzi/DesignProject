@@ -151,6 +151,35 @@ typical_year = f.typical_period(Loads,  "year")
 #%% Obtain a typical day from benchmarked typical year
 typical_day = f.typical_period(typical_year, Period)
 
+#color list 
+color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple", ]
+
+#initiating figure
+plt.figure()
+for i, typo in enumerate(Typo_list) : 
+    
+    loads = Typo_all_loads[typo]
+    # Obtain a typical year
+    t_year = f.typical_period(loads,  "year")
+    #obtain typical day 
+    t_day = f.typical_period(t_year, "day")
+    
+    word_to_find = "Renens"
+    
+    if typo == "Ecole":
+        # Get the column names containing the word
+        matching_columns = [col for col in t_day.columns if word_to_find.lower() in col.lower()]
+        
+        # Set colors for matching and non-matching columns
+        colors = ['pink' if col in matching_columns else 'darkblue' for col in t_day.columns]
+        for i, col in enumerate(t_day.columns):
+            t_day[col].plot(color=colors[i], label=typo)
+
+    else:
+        plt.semilogy(t_day, color=color[i], label=typo)
+    
+plt.legend()
+plt.show()
 #%% plotting one specific load over given benchmark 
 
 Load1 = typical_day.iloc[:, 4].to_frame()
@@ -222,7 +251,7 @@ updated_tendency = f.plot_mean_load(interest_period, typical_week, Period, Typol
 
 #%% Extracting all instances of the same exact time
 
-time_of_interest = aa.extract_time(Load1, pd.Timestamp('00:00:00'))
+time_of_interest = aa.extract_time(Load, pd.Timestamp('00:00:00'))
 
 
 #%% align years
