@@ -251,7 +251,7 @@ updated_tendency = f.plot_mean_load(interest_period, typical_week, Period, Typol
 
 #%% Extracting all instances of the same exact time
 
-time_of_interest = aa.extract_time(Load, pd.Timestamp('00:00:00'))
+#time_of_interest = aa.extract_time(Load, pd.Timestamp('00:00:00'))
 
 
 #%% align years

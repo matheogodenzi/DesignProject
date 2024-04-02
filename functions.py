@@ -330,8 +330,8 @@ def plot_typical_day(data_day, typology):
 
 
 
-def plot_typical_week(data_day, typology):
-    indices_list = data_day.index.tolist()
+def plot_typical_week(data_week, typology):
+    indices_list = data_week.index.tolist()
     
     datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
     #time_list = [dt.strftime('%d.%m.%Y %H:%M:%S') for dt in datetime_list]
@@ -339,7 +339,7 @@ def plot_typical_week(data_day, typology):
     
     #plotting
     fig, ax = plt.subplots()
-    ax.plot(datetime_list, data_day, linewidth=0.5)
+    ax.plot(datetime_list, data_week, linewidth=0.5)
     
     # Customize the x-axis tick labels
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))  # Set tick locator to daily intervals
@@ -352,7 +352,7 @@ def plot_typical_week(data_day, typology):
     ax.grid()
     
     # legend 
-    plt.legend([i for i in range(data_day.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.legend([i for i in range(data_week.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
     
     #title 
     plt.title("Annual typical week - " + typology, fontsize=15, fontdict={'fontweight': 'bold'})

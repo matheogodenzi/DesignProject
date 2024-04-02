@@ -54,6 +54,26 @@ def total_cons_ctrl(testLoad, df, granulo):
 
 
 #%%
+
+def typical_period_control(testLoad, df):
+      
+    # computing metrics
+    df["Mean"] = df.apply(f.filter_and_calculate_mean, axis=1).copy()
+    mean = df["Mean"].values
+    
+    # test result vector: 0 if normal, 1 if > mean, 2 if > 2means
+    typical_period_test = np.zeros_like(testLoad)
+     # running test
+    for i in range(len(testLoad)):
+        if testLoad.iloc[i,0] > mean[i]:
+            typical_period_test[i] = 1
+        elif testLoad.iloc[i,0] > (2 * mean[i]):
+            typical_period_test[i] = 2
+    
+    print(f"Value: {testLoad.iloc[i,0]}, Mean: {mean[i]}, Result: {typical_period_test[i]}")
+    return typical_period_test
+
+#%%
 # implementation of control to general plot
 def plot_mean_load_control(Load, Tendency, granulo="Specify granulotmetry", Typology="Specify Typologie", xaxis="specify label"):
     """
@@ -173,6 +193,131 @@ def plot_mean_load_control(Load, Tendency, granulo="Specify granulotmetry", Typo
     
     return Tendency
 
+#%%
+# implementation of control to general plot
+def plot_typical_week_control(testLoad, data_week, typology):
+    # control on data
+    # computing metrics
+    data_week["Mean"] = data_week.apply(f.filter_and_calculate_mean, axis=1).copy()
+    mean = data_week["Mean"].values
+    
+    # test result vector: 0 if normal, 1 if > mean, 2 if > 2means
+    typical_period_test = np.zeros_like(testLoad)
+    
+    # running tests
+    for i in range(len(testLoad)):
+        if testLoad.iloc[i,0] > mean[i]:
+            typical_period_test[i] = 1
+        elif testLoad.iloc[i,0] > (2 * mean[i]):
+            typical_period_test[i] = 2
+    
+    
+    # converting typical_period_test to curves
+    control_curve1 = testLoad.copy()
+    control_curve2 = testLoad.copy()
+    
+    for i in range(len(typical_period_test)):
+        if typical_period_test[i] != 1:
+            control_curve1.iloc[i,0] = np.nan
+        if typical_period_test[i] != 2:
+            control_curve2.iloc[i,0] = np.nan
+    
+    # managing datetime
+    indices_list = data_week.index.tolist()
+    
+    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
+    #time_list = [dt.strftime('%d.%m.%Y %H:%M:%S') for dt in datetime_list]
+    #print(time_list)
+    
+    #plotting
+    fig, ax = plt.subplots()
+    ax.plot(datetime_list, data_week, linewidth=0.5)
+    ax.plot(datetime_list, testLoad, color="black", alpha=1, linestyle='solid', linewidth=2, label="test")
+    ax.plot(datetime_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
+    ax.plot(datetime_list, control_curve2, color="red", alpha=1, linestyle='solid', linewidth=2, label="anomaly")
+    # Customize the x-axis tick labels
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))  # Set tick locator to daily intervals
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%A'))  # Format tick labels to display weekday 
+    
+    # axis
+    plt.xticks(rotation=45)
+    plt.xlabel("Week days", fontsize=12)
+    plt.ylabel("electric consumption" + r" $kWh_{el}/{m^2} $", fontsize=12)
+    ax.grid()
+    
+    # legend 
+    plt.legend([i for i in range(data_week.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+    
+    #title 
+    plt.title("Annual typical week - " + typology, fontsize=15, fontdict={'fontweight': 'bold'})
+    
+    plt.show()
+    
+    return
+
+#%%
+
+# implementation of control to general plot
+def plot_typical_week_control_clean(testLoad, data_week, typology):
+    # control on data
+    # computing metrics
+    data_week["Mean"] = data_week.apply(f.filter_and_calculate_mean, axis=1).copy()
+    mean = data_week["Mean"].values
+    
+    # test result vector: 0 if normal, 1 if > mean, 2 if > 2means
+    typical_period_test = np.zeros_like(testLoad)
+    
+    # running test
+    for i in range(len(testLoad)):
+        if testLoad.iloc[i,0] > mean[i]:
+            typical_period_test[i] = 1
+        elif testLoad.iloc[i,0] > (2 * mean[i]):
+            typical_period_test[i] = 2
+    
+    
+    # converting typical_period_test to curve
+    control_curve1 = testLoad.copy()
+    control_curve2 = testLoad.copy()
+    
+    for i in range(len(typical_period_test)):
+        if typical_period_test[i] != 1:
+            control_curve1.iloc[i,0] = np.nan
+        if typical_period_test[i] != 2 or typical_period_test[i] == 1:
+            control_curve2.iloc[i,0] = np.nan
+    
+    # managing datetime
+    indices_list = data_week.index.tolist()
+    
+    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
+    #time_list = [dt.strftime('%d.%m.%Y %H:%M:%S') for dt in datetime_list]
+    #print(time_list)
+    
+    #plotting
+    fig, ax = plt.subplots()
+    ax.plot(datetime_list, data_week["Mean"], linewidth=0.5)
+    ax.plot(datetime_list, testLoad, color="black", alpha=1, linestyle='solid', linewidth=2, label="test")
+    ax.plot(datetime_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
+    ax.plot(datetime_list, control_curve2, color="red", alpha=1, linestyle='solid', linewidth=2, label="anomaly")
+   
+    # Customize the x-axis tick labels
+    ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))  # Set tick locator to daily intervals
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%A'))  # Format tick labels to display weekday 
+    
+    # axis
+    plt.xticks(rotation=45)
+    plt.xlabel("Week days", fontsize=12)
+    plt.ylabel("electric consumption" + r" $kWh_{el}/{m^2} $", fontsize=12)
+    ax.grid()
+    
+    # legend 
+    plt.legend([i for i in range(data_week.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+    
+    #title 
+    plt.title("Annual typical week - " + typology, fontsize=15, fontdict={'fontweight': 'bold'})
+    
+    plt.show()
+    
+    return
 
 
 #%%
