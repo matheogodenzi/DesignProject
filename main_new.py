@@ -148,7 +148,7 @@ updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
 # Obtain a typical year
 typical_year = f.typical_period(Loads,  "year")
 
-#%% Obtain a typical day from benchmarked typical year
+#%% Comparing typologies to distinguish benchmarks
 typical_day = f.typical_period(typical_year, Period)
 
 #color list 
@@ -164,7 +164,7 @@ for i, typo in enumerate(Typo_list) :
     #obtain typical day 
     t_day = f.typical_period(t_year, "day")
     
-    word_to_find = "Renens"
+    word_to_find = " Renens"
     
     if typo == "Ecole":
         # Get the column names containing the word
@@ -178,7 +178,12 @@ for i, typo in enumerate(Typo_list) :
     else:
         plt.semilogy(t_day, color=color[i], label=typo)
     
-plt.legend()
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Typologies")
+plt.tight_layout(rect=[0, 0, 1, 2.3])
+plt.xlabel("Heures")
+plt.ylabel("Mean daily consumption [$kWh_{el}/m^2$]")
+plt.title("Mean day consumption - typology distinction")
+plt.grid()
 plt.show()
 #%% plotting one specific load over given benchmark 
 
@@ -258,7 +263,17 @@ updated_tendency = f.plot_mean_load(interest_period, typical_week, Period, Typol
 
 
 
-
+for column_name in Loads.columns : 
+    
+    # Calculate the 10th percentile value for the chosen column
+    percentile_10 = Loads[column_name].quantile(0.2)
+    
+    # Extract the values from the chosen column that are less than or equal to the 10th percentile
+    lowest_10_percentile = Loads[Loads[column_name] <= percentile_10][column_name]
+    
+    plt.plot(lowest_10_percentile)
+    plt.show()
+    exit()
 
 
 
