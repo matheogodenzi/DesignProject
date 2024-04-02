@@ -265,7 +265,7 @@ typical_period_test = c.typical_period_control(single_load, typical_period_load)
 
 # for comparison
 data_week = f.typical_period(Loads, Period)
-c.plot_typical_week_control(single_load, data_week, Typology)
+#c.plot_typical_week_control(single_load, data_week, Typology)
 
 c.plot_typical_week_control_clean(single_load, data_week, Typology)
 

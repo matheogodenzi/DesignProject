@@ -70,7 +70,7 @@ def typical_period_control(testLoad, df):
         elif testLoad.iloc[i,0] > (2 * mean[i]):
             typical_period_test[i] = 2
     
-    print(f"Value: {testLoad.iloc[i,0]}, Mean: {mean[i]}, Result: {typical_period_test[i]}")
+    
     return typical_period_test
 
 #%%
@@ -233,7 +233,7 @@ def plot_typical_week_control(testLoad, data_week, typology):
     fig, ax = plt.subplots()
     ax.plot(datetime_list, data_week, linewidth=0.5)
     ax.plot(datetime_list, testLoad, color="black", alpha=1, linestyle='solid', linewidth=2, label="test")
-    ax.plot(datetime_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
+    #ax.plot(datetime_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
     ax.plot(datetime_list, control_curve2, color="red", alpha=1, linestyle='solid', linewidth=2, label="anomaly")
     # Customize the x-axis tick labels
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))  # Set tick locator to daily intervals
@@ -295,6 +295,7 @@ def plot_typical_week_control_clean(testLoad, data_week, typology):
     #plotting
     fig, ax = plt.subplots()
     ax.plot(datetime_list, data_week["Mean"], linewidth=0.5)
+    ax.plot(datetime_list, data_week["Mean"] * 2, color="green", linewidth=0.5)
     ax.plot(datetime_list, testLoad, color="black", alpha=1, linestyle='solid', linewidth=2, label="test")
     ax.plot(datetime_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
     ax.plot(datetime_list, control_curve2, color="red", alpha=1, linestyle='solid', linewidth=2, label="anomaly")
