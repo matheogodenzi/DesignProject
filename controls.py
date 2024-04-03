@@ -65,11 +65,11 @@ def typical_period_control(testLoad, df):
     typical_period_test = np.zeros_like(testLoad)
      # running test
     for i in range(len(testLoad)):
-        if testLoad.iloc[i,0] > mean[i]:
-            typical_period_test[i] = 1
-        elif testLoad.iloc[i,0] > (2 * mean[i]):
+        if testLoad.iloc[i,0] > (2 * mean[i]):
             typical_period_test[i] = 2
-    
+        elif testLoad.iloc[i,0] > mean[i]:
+            typical_period_test[i] = 1
+        
     
     return typical_period_test
 
@@ -137,10 +137,11 @@ def plot_mean_load_control(Load, Tendency, granulo="Specify granulotmetry", Typo
     
     # running statistical test
     for i in range(len(Load)):
-        if Load.iloc[i,0] > std1[i]:
+        
+        if Load.iloc[i,0] > std2[i]:
+            total_cons_test[i] = 2
+        elif Load.iloc[i,0] > std1[i]:
             total_cons_test[i] = 1
-        elif Load.iloc[i,0] > std2[i]:
-            total_cons_test[i] = 2    
 
     # converting Load_control to curve
     Load_controlstd1 = Load.copy()
@@ -206,10 +207,11 @@ def plot_typical_week_control(testLoad, data_week, typology):
     
     # running tests
     for i in range(len(testLoad)):
-        if testLoad.iloc[i,0] > mean[i]:
-            typical_period_test[i] = 1
-        elif testLoad.iloc[i,0] > (2 * mean[i]):
+        if testLoad.iloc[i,0] > (2 * mean[i]):
             typical_period_test[i] = 2
+        elif testLoad.iloc[i,0] > mean[i]:
+            typical_period_test[i] = 1
+        
     
     
     # converting typical_period_test to curves
@@ -233,7 +235,7 @@ def plot_typical_week_control(testLoad, data_week, typology):
     fig, ax = plt.subplots()
     ax.plot(datetime_list, data_week, linewidth=0.5)
     ax.plot(datetime_list, testLoad, color="black", alpha=1, linestyle='solid', linewidth=2, label="test")
-    #ax.plot(datetime_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
+    ax.plot(datetime_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
     ax.plot(datetime_list, control_curve2, color="red", alpha=1, linestyle='solid', linewidth=2, label="anomaly")
     # Customize the x-axis tick labels
     ax.xaxis.set_major_locator(mdates.DayLocator(interval=1))  # Set tick locator to daily intervals
@@ -269,10 +271,11 @@ def plot_typical_week_control_clean(testLoad, data_week, typology):
     
     # running test
     for i in range(len(testLoad)):
-        if testLoad.iloc[i,0] > mean[i]:
-            typical_period_test[i] = 1
-        elif testLoad.iloc[i,0] > (2 * mean[i]):
+        if testLoad.iloc[i,0] > (2 * mean[i]):
             typical_period_test[i] = 2
+        elif testLoad.iloc[i,0] > mean[i]:
+            typical_period_test[i] = 1
+        
     
     
     # converting typical_period_test to curve
@@ -311,7 +314,7 @@ def plot_typical_week_control_clean(testLoad, data_week, typology):
     ax.grid()
     
     # legend 
-    plt.legend([i for i in range(data_week.shape[1])], bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.legend(["Mean", "2*Mean", "Value", "Value>Mean", "Value>2Mean"], bbox_to_anchor=(1.05, 1), loc='upper left')
     
     #title 
     plt.title("Annual typical week - " + typology, fontsize=15, fontdict={'fontweight': 'bold'})
@@ -319,6 +322,61 @@ def plot_typical_week_control_clean(testLoad, data_week, typology):
     plt.show()
     
     return
+
+#%%
+
+def plot_typical_day_control_clean(testLoad, data_day, typology):
+    # computing metrics
+    data_day["Mean"] = data_day.apply(f.filter_and_calculate_mean, axis=1).copy()
+    mean = data_day["Mean"].values
+    
+    # test result vector: 0 if normal, 1 if > mean, 2 if > 2means
+    typical_period_test = np.zeros_like(testLoad)
+    
+    # running test
+    for i in range(len(testLoad)):
+        if testLoad.iloc[i,0] > (2 * mean[i]):
+            typical_period_test[i] = 2
+        elif testLoad.iloc[i,0] > mean[i]:
+            typical_period_test[i] = 1
+    
+    # converting typical_period_test to curve
+    control_curve1 = testLoad.copy()
+    control_curve2 = testLoad.copy()
+    
+    for i in range(len(typical_period_test)):
+        if typical_period_test[i] != 1:
+            control_curve1.iloc[i,0] = np.nan
+        if typical_period_test[i] != 2 or typical_period_test[i] == 1:
+            control_curve2.iloc[i,0] = np.nan
+    
+    
+    indices_list = data_day.index.tolist()
+    
+    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
+    time_list = [dt.time().strftime("%H:%M") for dt in datetime_list]
+    
+    plt.plot(time_list, data_day, linewidth=0.5)
+    plt.plot(time_list, data_day["Mean"], linewidth=0.5)
+    plt.plot(time_list, data_day["Mean"] * 2, color="green", linewidth=0.5)
+    plt.plot(time_list, testLoad, color="black", alpha=1, linestyle='solid', linewidth=2, label="test")
+    plt.plot(time_list, control_curve1, color="orange", alpha=1, linestyle='solid', linewidth=2, label="surveillance")
+    plt.plot(time_list, control_curve2, color="red", alpha=1, linestyle='solid', linewidth=2, label="anomaly")
+    
+    # legend 
+    plt.legend(["Mean", "2*Mean", "Value", "Value>Mean", "Value>2Mean"], bbox_to_anchor=(1.05, 1), loc='upper left')
+    # Set the x-axis ticks to display only every n-th value
+    n = 7 # Display every 10th value
+    plt.xticks(np.arange(0, data_day.shape[0], n), fontsize=7, rotation=45)
+    plt.xlabel("hours of the day", fontsize=12)
+    plt.ylabel("electric consumption" + r" $kWh_{el}/{m^2} $ ", fontsize=12)
+    plt.title("Typical Day - " + typology, fontsize=15, fontdict={'fontweight': 'bold'})
+    plt.grid()
+    
+    plt.show()
+    
+    return
+
 
 
 #%%

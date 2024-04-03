@@ -250,7 +250,7 @@ single_load = Loads.iloc[:,2].to_frame()
 print(c.quarterly_consumption(single_load, Loads))
 
 
-#%% typical period control
+#%% typical week control
 
 # parameters to change
 Typology = "Ecole"
@@ -258,14 +258,23 @@ Period = "week"
 Loads = Typo_loads[Typology]
 
 typical_period_load = f.typical_period(Loads, Period)
-single_load = typical_period_load.iloc[:,6].to_frame()
+single_load = typical_period_load.iloc[:,4].to_frame()
 
-typical_period_test = c.typical_period_control(single_load, typical_period_load)
+#typical_period_test = c.typical_period_control(single_load, typical_period_load)
 #print(typical_period_test)
 
 # for comparison
 data_week = f.typical_period(Loads, Period)
-#c.plot_typical_week_control(single_load, data_week, Typology)
+c.plot_typical_week_control(single_load, data_week, Typology)
 
 c.plot_typical_week_control_clean(single_load, data_week, Typology)
 
+
+#%% typical day control
+
+Typology = "Ecole"
+Period = "day"
+Loads = Typo_loads[Typology]
+
+data_day = f.typical_period(Loads, Period)
+c.plot_typical_day_control_clean(single_load, data_day, Typology)
