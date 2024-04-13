@@ -190,14 +190,17 @@ for column_name in Loads_2022.columns :
     exit()
 """
 #%%
-import pandas as pd
+
 
 # Create an empty DataFrame with columns for 'Day' and 'Month'
 results_df = pd.DataFrame(columns=Loads_2022.columns)
 
-for (year, month, day), group in Loads_2022.groupby([Loads_2022.index.year, Loads_2022.index.month, Loads_2022.index.day]):
+df = Loads_2022.astype(np.longdouble)
+
+for (year, month, day), group in df.groupby([df.index.year, df.index.month, df.index.day]):
     # Calculate the average of the smallest values of each column within each group
-    average_of_smallest_values = group.apply(lambda x: x.nsmallest(96).mean())
+    
+    average_of_smallest_values = group.apply(lambda x: x.nsmallest(3).mean())
     print(group.shape)
     # Create a DataFrame for the current iteration
     current_df = pd.DataFrame(average_of_smallest_values).T  # Transpose to make it a row
@@ -209,7 +212,8 @@ for (year, month, day), group in Loads_2022.groupby([Loads_2022.index.year, Load
     
     # Append the DataFrame to the results DataFrame
     results_df = pd.concat([results_df, current_df])
-
+    
+    
 # Display the filled DataFrame
 print(results_df)
 
@@ -220,16 +224,64 @@ plt.legend([i for i in range(results_df.shape[0])])
 plt.show
 
 plt.figure()
-plt.plot(results_df.iloc[:, 7])
+plt.plot(results_df)
 plt.show()
 
 #%% test 
 
 Period = "day"
 
-tendency_day = f.period_tendencies(Loads_2022, Period)
+tendency_day = f.period_tendencies_new(Loads_2022, Period)
 
 
-plt.plot(results_df.iloc[:,6].values[:-1] - tendency_day.iloc[:,6].values)
+plt.plot(results_df.iloc[:,3].values[:] - tendency_day.iloc[:,3].values[:])
 plt.show()
 
+#%%
+
+import pandas as pd
+
+def get_baseload(df):
+    """
+    Delineate annual tendencies over days, weeks, and months
+
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
+
+    Returns
+    -------
+    result : DataFrame
+        DataFrame containing the mean of the 6 smallest values of each column.
+    """
+
+    num_rows = df.shape[0]
+    averages = []
+
+    # Iterate over the DataFrame in chunks of 96 rows
+    chunk_size = 96
+    for i in range(0, num_rows, chunk_size):
+        chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
+        
+        # Calculate the 6 smallest values of each column
+        smallest_values = chunk.apply(lambda x: x.nsmallest(6))
+
+        # Calculate the mean of the smallest values for each column
+        average_of_smallest = smallest_values.mean()
+        averages.append(average_of_smallest)  # Append the averages to the list
+    
+    # Concatenate the averages into a single DataFrame
+    result = pd.concat(averages, axis=1).reset_index(drop=True)
+    
+    return result
+
+
+
+
+
+#%%
+
+Loads_2022.astype(np.longdouble)
+
+baesloads = get_baseload(Loads_2022)
