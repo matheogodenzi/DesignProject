@@ -16,6 +16,9 @@ import os
 import seaborn as sb
 from datetime import datetime
 import matplotlib.dates as mdates
+import seaborn as sns
+import matplotlib.pyplot as plt
+from itertools import cycle
 
 """functions imports"""
 
@@ -127,7 +130,7 @@ for typo in Typo_list:
 
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Apems"
 Period = "day"
 
 # smoothing calculations
@@ -265,14 +268,15 @@ def get_baseload(df):
         chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
         
         # Calculate the 6 smallest values of each column
-        smallest_values = chunk.apply(lambda x: x.nsmallest(6))
+        smallest_values = chunk.apply(lambda x: x.nsmallest(6)) #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
 
         # Calculate the mean of the smallest values for each column
         average_of_smallest = smallest_values.mean()
+        
         averages.append(average_of_smallest)  # Append the averages to the list
     
     # Concatenate the averages into a single DataFrame
-    result = pd.concat(averages, axis=1).reset_index(drop=True)
+    result = pd.concat(averages, axis=1).T
     
     return result
 
@@ -282,6 +286,82 @@ def get_baseload(df):
 
 #%%
 
-Loads_2022.astype(np.longdouble)
+df = Loads.astype(np.longdouble)
 
-baesloads = get_baseload(Loads_2022)
+print(df[df.index.duplicated()])
+
+# Remove duplicate indices
+df_no_duplicates = df[~df.index.duplicated(keep='first')]
+
+#%%
+baseloads = get_baseload(df_no_duplicates)
+
+plt.figure()
+plt.plot(baseloads)
+plt.show()
+
+#%% Linear regressions 
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+
+# parameters to change
+Typology = "Ecole"
+Period = "day"
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+df = Loads.astype(np.longdouble)
+
+print(df[df.index.duplicated()])
+
+# Remove duplicate indices
+df_no_duplicates = df[~df.index.duplicated(keep='first')]
+
+baseloads = get_baseload(df_no_duplicates)
+
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+
+df  = baseloads
+
+# Define your color palette
+palette = sns.color_palette("bright", df.shape[0])
+# Create an iterator to cycle through the colors
+color_iterator = cycle(palette)
+# Create subplots
+fig, ax = plt.subplots(figsize=(25, 10))
+
+# Perform linear regression and plot for each column
+for i, column in enumerate(df.columns):
+    #if i != 6 and i != 7 : 
+        # Get the next color from the iterator
+        color = next(color_iterator)
+        X = np.array(df.index).reshape(-1, 1)   # Independent variable
+        y = df[column].values.reshape(-1, 1)              # Dependent variable
+        
+        # Fit linear regression model
+        model = LinearRegression()
+        model.fit(X, y)
+        
+        # Plot data points
+        ax.scatter(X, y, color=color, alpha=0.3)
+        
+        # Plot regression line
+        ax.plot(X, model.predict(X), color=color, label=column, linewidth=3, alpha = 1)
+        
+        # Set labels and title
+        ax.set_title(f'{column}')
+        ax.set_xlabel('Independent Variable')
+        ax.set_ylabel('Dependent Variable')
+        ax.legend()
+
+plt.tight_layout()
+plt.show()
+
