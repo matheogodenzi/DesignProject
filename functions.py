@@ -69,15 +69,17 @@ def period_tendencies(df, period="week"):
     elif period == "month":
         chunk_size = 30*96 #TO BE MODIFIED TO HAVE THE MONTHS IN DETAIL 
     
-    num_rows = len(df)
+    num_rows = df.shape[0]
     averages = []
     
+    df = df.astype(np.longdouble)
+
     # Iterate over the DataFrame in chunks of 96 rows
     for i in range(0, num_rows, chunk_size):
         chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
         chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
         averages.append(chunk_avg)  # Append the averages to the list
-    #print("averages : \n", averages)
+        print(i)
     # Concatenate the averages into a single DataFrame
     result = pd.concat(averages, axis=1).T
     # Print the result
@@ -85,7 +87,89 @@ def period_tendencies(df, period="week"):
     
     return result
 
+def period_tendencies_new(df, period="week"):
+    """
+    Delineate annual tendencies over days, weeks, and months
 
+    Parameters
+    ----------
+    df : TYPE
+        DESCRIPTION.
+    period : TYPE, optional
+        DESCRIPTION. The default is "week".
+
+    Returns
+    -------
+    result : TYPE
+        DESCRIPTION.
+
+    """
+    
+    df.index = pd.to_datetime(df.index)
+    results_df = pd.DataFrame(columns=df.columns)
+    
+    if period == "day":
+        for (year, month, day), group in df.groupby([df.index.year, df.index.month, df.index.day]):
+            # Calculate the average of the values of each column within each group
+            
+            average_of_smallest_values = group.apply(lambda x: x.mean())
+            #print(group.shape)
+            # Create a DataFrame for the current iteration
+            current_df = pd.DataFrame(average_of_smallest_values).T  # Transpose to make it a row
+            #current_df['Day'] = day
+            #current_df['Month'] = month
+            
+            # Set datetime index for the current iteration
+            current_df.index = pd.to_datetime([f'{year}-{month}-{day}'])
+            
+            # Append the DataFrame to the results DataFrame
+            results_df = pd.concat([results_df, current_df])
+    
+    if period == "week":
+        # Group the DataFrame by weeks and include month and year information in the index
+        groups = df.groupby([pd.Grouper(freq='W'), df.index.year, df.index.month])
+        
+        # Create an empty DataFrame to store the results
+        results_df = pd.DataFrame(columns=df.columns)
+        
+        # Iterate over the groups
+        for (week_start, year, month), group in groups:
+            # Calculate the average of the values of each column within each group
+            average_of_smallest_values = group.apply(lambda x: x.mean())
+            
+            # Create a DataFrame for the current iteration
+            current_df = pd.DataFrame(average_of_smallest_values).T  # Transpose to make it a row
+            
+            # Set datetime index for the current iteration (include week start date, year, and month)
+            current_df.index = pd.MultiIndex.from_tuples([(week_start, year, month)], names=['Week_Start', 'Year', 'Month'])
+            
+            # Append the DataFrame to the results DataFrame
+            results_df = pd.concat([results_df, current_df])
+            
+    if period == "month":
+        
+        # Group the DataFrame by month and include year information in the index
+        groups = df.groupby([df.index.year, df.index.month])
+        
+        # Create an empty DataFrame to store the results
+        results_df = pd.DataFrame(columns=df.columns)
+        
+        # Iterate over the groups
+        for (year, month), group in groups:
+            # Calculate the average of the values of each column within each group
+            average_values = group.mean()
+            
+            # Create a DataFrame for the current iteration
+            current_df = pd.DataFrame(average_values).T  # Transpose to make it a row
+            
+            # Set datetime index for the current iteration (include year and month)
+            current_df.index = pd.MultiIndex.from_tuples([(year, month)], names=['Year', 'Month'])
+            
+            # Append the DataFrame to the results DataFrame
+            results_df = pd.concat([results_df, current_df])
+
+    
+    return results_df
 
 def plot_tendency(tendency,specific_load=None, title="Electric consumptions ***insert Typology***", period="week", show_legend=False):
     """
@@ -372,109 +456,5 @@ def plot_typical_week(data_week, typology):
 # Example usage or tests
 if __name__ == "__main__":
     
-    print("testing functions !")
-    print(plt.style.available)
-
-
-
-
-#%% Old material 
-
-"""
-def average_24h(df):
-    
-    chunk_size = 96 #96 quarters of hour
-    num_rows = len(df)
-    averages = []
-
-    # Iterate over the DataFrame in chunks of 96 rows
-    for i in range(0, num_rows, chunk_size):
-        chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
-        chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
-        averages.append(chunk_avg)  # Append the averages to the list
-
-    # Concatenate the averages into a single DataFrame
-    result = pd.concat(averages, axis=1).T
-
-    # Print the result
-    print(result)
-    return result
-
-
-
-def av_1_week(df):
-    
-    chunk_size = 7*24*4 #96 quarters of hour
-    num_rows = len(df)
-    averages = []
-    
-    # Iterate over the DataFrame in chunks of 96 rows
-    for i in range(0, num_rows, chunk_size):
-        chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
-        chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
-        averages.append(chunk_avg)  # Append the averages to the list
-    
-    # Concatenate the averages into a single DataFrame
-    result = pd.concat(averages, axis=1).T
-    
-    # Print the result
-    print(result)
-    
-    return result
-
-
-def av_1_month(df):
-    
-    chunk_size = 28*24*4 #96 quarters of hour
-    num_rows = len(df)
-    averages = []
-    
-    # Iterate over the DataFrame in chunks of 96 rows
-    for i in range(0, num_rows, chunk_size):
-        chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
-        chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
-        averages.append(chunk_avg)  # Append the averages to the list
-    
-    # Concatenate the averages into a single DataFrame
-    result = pd.concat(averages, axis=1).T
-    
-    # Print the result
-    print(result)
-    
-    return result
-"""
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    #what if 
+    print("hello")

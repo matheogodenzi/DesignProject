@@ -135,7 +135,7 @@ plt.show()
 #%% Averaging over a a given period (smoothing of the curve)
 
 # parameters to change
-Typology = "Culture"
+Typology = "culture"
 Period = "week"
 #%%
 

@@ -201,7 +201,7 @@ plt.grid()
 plt.show()
 #%% plotting one specific load over given benchmark 
 
-Load1 = typical_day.iloc[:, 4].to_frame()
+Load1 = typical_day.iloc[:, 7].to_frame()
 f.plot_mean_load(Load1, typical_day, Period, Typology)
 
 
@@ -220,21 +220,21 @@ f.plot_mean_load(None, tendency, period=Period, Typology=Typology)
 #data = Typo_loads["Apems"]
 Period = "day"
 
-tendency_day = f.period_tendencies(Loads, Period)
+tendency_day = f.period_tendencies_new(Loads, Period)
 data_day = f.typical_period(Loads, Period)
 
 # Typical day for all infrastructures 
-f.plot_typical_day(data_day, Typology)
+#f.plot_typical_day(data_day, Typology)
 
 
 #daily smoothing along the year for all insfrastrctures 
-f.plot_tendency(tendency_day, title="Load curve weekly average for "+Typology+"s", period=Period, show_legend=True)
+f.plot_tendency(tendency_day.head(365), title="Load curve weekly average for "+Typology+"s", period=Period, show_legend=True)
 
 
 #%% All Benchmark plotted for a week 
 
 #data = Typo_loads["Apems"]
-Period = "week"
+Period = "day"
 
 # Annual weekly smoothing of the loag curve
 tendency_week = f.period_tendencies(Loads, Period)
@@ -242,7 +242,7 @@ data_week = f.typical_period(Loads, Period)
 
 
 #typical week for all infrastructures 
-f.plot_typical_week(data_week, Typology)
+#f.plot_typical_week(data_week, Typology)
 
 #weekly smoothing along the year for all insfrastrctures 
 f.plot_tendency(tendency_week, title="Load curve weekly average for "+Typology+"s", period=Period, show_legend=True)
