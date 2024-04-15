@@ -130,7 +130,7 @@ for typo in Typo_list:
 
 
 # parameters to change
-Typology = "Apems"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -268,7 +268,7 @@ def get_baseload(df):
         chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
         
         # Calculate the 6 smallest values of each column
-        smallest_values = chunk.apply(lambda x: x.nsmallest(6)) #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
+        smallest_values = chunk.apply(lambda x: x.nsmallest(24)) #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
 
         # Calculate the mean of the smallest values for each column
         average_of_smallest = smallest_values.mean()
@@ -309,7 +309,7 @@ from sklearn.linear_model import LinearRegression
 
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Apems"
 Period = "day"
 
 # smoothing calculations
@@ -365,3 +365,119 @@ for i, column in enumerate(df.columns):
 plt.tight_layout()
 plt.show()
 
+
+
+#%%
+
+
+
+# parameters to change
+Typology = "Ecole"
+Period = "day"
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+df = Loads.astype(np.longdouble)
+
+print(df[df.index.duplicated()])
+
+# Remove duplicate indices
+df_no_duplicates = df[~df.index.duplicated(keep='first')]
+
+baseloads = get_baseload(df_no_duplicates)
+
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+num_rows = baseloads.shape[0]
+chunk_size = 7
+df = baseloads 
+
+averages = []
+# Iterate over the DataFrame in chunks of 96 rows
+for i in range(0, num_rows, chunk_size):
+    chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
+    chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
+    averages.append(chunk_avg)  # Append the averages to the list
+    print(i)
+# Concatenate the averages into a single DataFrame
+result = pd.concat(averages, axis=1).T
+
+
+# Define your color palette
+palette = sns.color_palette("bright", 2*result.shape[0])
+
+
+plt.figure
+plt.plot(result.head(53))
+plt.plot(result.tail(53))
+plt.grid()
+plt.xlabel("weeks of the year")
+plt.show()
+
+plt.figure()
+plt.semilogy((result.head(53).values+result.tail(53).values)/2)
+plt.grid(which="both", alpha=0.5)
+plt.xlabel("weeks of the year")
+plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
+plt.title("Annual baseload variation - Schools")
+plt.legend(["S "+str(i+1) for i, v in enumerate(result.columns)], loc='upper left', bbox_to_anchor=(1, 1))
+plt.show()
+
+
+#%%
+
+# parameters to change
+Typology = "Ecole"
+Period = "day"
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+df = Loads.astype(np.longdouble)
+
+print(df[df.index.duplicated()])
+
+# Remove duplicate indices
+df_no_duplicates = df[~df.index.duplicated(keep='first')]
+
+baseloads = get_baseload(df_no_duplicates)
+
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+num_rows = baseloads.shape[0]
+chunk_size = 30
+df = baseloads 
+
+averages = []
+# Iterate over the DataFrame in chunks of 96 rows
+for i in range(0, num_rows, chunk_size):
+    chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
+    chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
+    averages.append(chunk_avg)  # Append the averages to the list
+    print(i)
+# Concatenate the averages into a single DataFrame
+result = pd.concat(averages, axis=1).T
+
+
+# Define your color palette
+palette = sns.color_palette("bright", 2*result.shape[0])
+
+
+plt.figure
+plt.plot(result.head(13))
+plt.plot(result.tail(13))
+plt.grid()
+plt.xlabel("weeks of the year")
+plt.show()
+
+plt.figure()
+plt.semilogy((result.head(13).values+result.tail(13).values)/2)
+plt.grid()
+plt.xlabel("weeks of the year")
+plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
+plt.show()
