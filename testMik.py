@@ -30,6 +30,7 @@ import matplotlib.dates as mdates
 
 import functions as f
 import controls as c
+import process_data as p
 
 
 """data acquisition"""
@@ -89,41 +90,32 @@ Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building
 #Bar_loads =[]
 #Parkinglot_loads =[]
 
-Typo_loads = {}
 Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Commune2", "Buvette", "Parking"]
 
-for i, (k, v) in enumerate(Building_dict_2023.items()):
-    
-    Commune =  Building_dict_2023[k] #v
+#getting typologies from 2022
+Typo_loads_2022 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
 
-    for typo in Typo_list: 
-        
-        Building_ID = Commune[Commune["Typo"]== typo]
-        ID_list = Building_ID["Référence"].tolist()
-        surface_list = Building_ID["Surface"].tolist()
-        address_list = Building_ID["Emplacement"].tolist()
-        Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
-        load_selected = LoadCurve_2023_dict[k][Complete_IDs]
-        
-        #linking surface to ID
-        surf_id_dict = {k: v for k, v in zip(Complete_IDs, surface_list)}
-        address_id_dict = {k: v for k, v in zip(Complete_IDs, address_list)}
-        
-        for col_name in load_selected.columns:
-            load_selected /= surf_id_dict[col_name]
-        
-        if i== 0:
-            Typo_loads[typo] = load_selected.copy()
-        else : 
-            df = Typo_loads[typo].copy() 
-            df[Complete_IDs] = load_selected.loc[:,Complete_IDs]
-            Typo_loads[typo] = df
-        
-        #renaming columns with adresses 
-        Typo_loads[typo].rename(columns=address_id_dict, inplace=True)
-            
-    
-#print(Typo_loads)
+#getting typologies from 2023
+Typo_loads_2023 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
+
+# creating overall dictionnary
+Typo_all_loads = {}
+for typo in Typo_list:
+    Typo_all_loads[typo] = pd.concat([Typo_loads_2022[typo], Typo_loads_2023[typo]], axis=0)
+
+
+#%% get consumptions sorted
+
+Cons_list = ["bas", "moyen", "haut", "fort"]
+
+Cons_loads_2022 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2022_dict, Cons_list)
+
+Cons_loads_2023 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2023_dict, Cons_list)
+
+Cons_all_loads = {}
+
+for cons in Cons_list:
+    Cons_all_loads[cons] = pd.concat([Cons_loads_2022[cons], Cons_loads_2022[cons]], axis=0)
 
 
 #%% Plotting typologies 
@@ -148,14 +140,6 @@ Period = "week"
 #%%
 
 
-# smoothing calculation
-Loads = Typo_loads[Typology]
-Tendency = f.period_tendencies(Loads, Period)
-
-# plotting 
-f.plot_tendency(Tendency, title= Typology+" "+ Period, period=Period)
-
-
 
 #%% calculating mean and standard deviation for a typical day the year 
 
@@ -165,7 +149,7 @@ Typology = "Commune2"
 Period = "week"
 
 # smoothing calculations
-Loads = Typo_loads[Typology]
+Loads = Typo_all_loads[Typology]
 Tendency = f.period_tendencies(Loads, Period)
 
 # plotting 
@@ -225,7 +209,7 @@ Typology = "Commune2"
 Period = "week"
 
 # smoothing calculations
-Loads = Typo_loads[Typology]
+Loads = Typo_all_loads[Typology]
 Tendency = f.period_tendencies(Loads, Period)
 
 
@@ -255,7 +239,7 @@ print(c.quarterly_consumption(single_load, Loads))
 # parameters to change
 Typology = "Ecole"
 Period = "week"
-Loads = Typo_loads[Typology]
+Loads = Typo_all_loads[Typology]
 
 typical_period_load = f.typical_period(Loads, Period)
 single_load = typical_period_load.iloc[:,4].to_frame()
@@ -274,7 +258,7 @@ c.plot_typical_week_control_clean(single_load, data_week, Typology)
 
 Typology = "Ecole"
 Period = "day"
-Loads = Typo_loads[Typology]
+Loads = Typo_all_loads[Typology]
 
 data_day = f.typical_period(Loads, Period)
 c.plot_typical_day_control_clean(single_load, data_day, Typology)

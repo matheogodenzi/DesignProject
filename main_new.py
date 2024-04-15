@@ -121,6 +121,20 @@ for typo in Typo_list:
     
 #print(Typo_loads)
 
+#%% get consumptions sorted
+
+Cons_list = ["bas", "moyen", "haut", "fort"]
+
+Cons_loads_2022 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2022_dict, Cons_list)
+
+Cons_loads_2023 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2023_dict, Cons_list)
+
+Cons_all_loads = {}
+
+for cons in Cons_list:
+    Cons_all_loads[cons] = pd.concat([Cons_loads_2022[cons], Cons_loads_2022[cons]], axis=0)
+
+
 
 #%% calculating mean and standard deviation for a typical day the year 
 
