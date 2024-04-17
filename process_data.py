@@ -52,7 +52,7 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list):
         
         Commune =  Building_dict[k] #v
     
-        for typo in Typo_list: 
+        for j, typo in enumerate(Typo_list): 
             
             Building_ID = Commune[Commune["Typo"]==typo]
             ID_list = Building_ID["Référence"].tolist()
@@ -62,9 +62,25 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list):
             Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
             load_selected = LoadCurve_dict[k][Complete_IDs]
             
+            # translating from french to english
+            if typo == "Ecole":
+                simple_IDs = ["School " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Commune" or typo == "Commune2":
+                simple_IDs = ["Administration " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Culture":
+                simple_IDs = ["Socio-cultural & Sports " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Apems":
+                simple_IDs = ["Day-care " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            else : 
+                simple_IDs = ["other" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                
+                
+                
+                
             #linking surface to ID
             surf_id_dict = {k: v for k, v in zip(Complete_IDs, surface_list)}
             address_id_dict = {k: v for k, v in zip(Complete_IDs, address_list)}
+            simple_id_dict = {k:v for k, v in zip(Complete_IDs,simple_IDs)}
             
             for col_name in load_selected.columns:
                 load_selected /= surf_id_dict[col_name]
@@ -77,7 +93,10 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list):
                 Typo_loads[typo] = df
             
             #renaming columns with adresses 
-            Typo_loads[typo].rename(columns=address_id_dict, inplace=True)
+            #Typo_loads[typo].rename(columns=address_id_dict, inplace=True)
+            
+            #renaiming columns with simple IDs to conserve anonimity 
+            Typo_loads[typo].rename(columns=simple_id_dict, inplace=True)
       
     return Typo_loads
 
@@ -116,6 +135,7 @@ def discriminate_conslevels(Building_dict, LoadCurve_dict, Cons_list):
             #address_list = [address + " " + period for address in adress_list]
             Complete_IDs = ["Livraison active."+elem+".kWh" for elem in ID_list]
             load_selected = LoadCurve_dict[k][Complete_IDs]
+            
             
             #linking surface to ID
             surf_id_dict = {k: v for k, v in zip(Complete_IDs, surface_list)}

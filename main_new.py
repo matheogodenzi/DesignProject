@@ -291,4 +291,78 @@ for column_name in Loads.columns :
 
 
 
+#%%
+
+
+
+
+# parameters to change
+Typology = "Ecole"
+Period = "day"
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+df = Loads.astype(np.longdouble)
+
+print(df[df.index.duplicated()])
+
+# Remove duplicate indices
+df_no_duplicates = df[~df.index.duplicated(keep='first')]
+
+baseloads = get_baseload(df_no_duplicates)
+
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+num_rows = baseloads.shape[0]
+chunk_size = 7
+df = baseloads 
+
+averages = []
+# Iterate over the DataFrame in chunks of 96 rows
+for i in range(0, num_rows, chunk_size):
+    chunk = df.iloc[i:i+chunk_size]  # Get the current chunk of 96 rows
+    chunk_avg = chunk.mean()  # Calculate the average for each column in the chunk
+    averages.append(chunk_avg)  # Append the averages to the list
+    print(i)
+# Concatenate the averages into a single DataFrame
+result = pd.concat(averages, axis=1).T
+
+#selecting a subset 
+#result = result.iloc[:, 1:4]
+
+# Define your color palette
+my_colors = sb.color_palette("hls", result.shape[1])
+#my_colors = sb.color_palette("Spectral", result.shape[1])
+#my_colors = sb.color_palette("magma", result.shape[1])
+#my_colors = sb.color_palette("icefire", result.shape[1])
+#my_colors = sb.color_palette("husl", result.shape[1])
+
+print(f"my colors : {my_colors}")
+
+
+plt.figure()
+
+for i, column in enumerate(result.columns):
+    plt.plot((result[column].head(53).values + result[column].tail(53).values) / 2, color=my_colors[i])
+
+plt.yscale('log')
+plt.grid(which="both", alpha=0.5)
+plt.xlabel("weeks of the year")
+plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
+plt.title("Annual baseload variation - Administration - small consumers")
+plt.legend(result.columns, loc='upper left', bbox_to_anchor=(1, 1))
+plt.show()
+
+#%%
+plt.figure
+plt.plot(result.head(53),color=my_colors)
+plt.plot(result.tail(53),color=my_colors)
+plt.grid()
+plt.xlabel("weeks of the year")
+plt.show()
+
+
 

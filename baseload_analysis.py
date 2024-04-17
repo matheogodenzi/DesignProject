@@ -372,7 +372,7 @@ plt.show()
 
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
@@ -405,9 +405,11 @@ for i in range(0, num_rows, chunk_size):
 # Concatenate the averages into a single DataFrame
 result = pd.concat(averages, axis=1).T
 
+#selecting a subset 
+result = result.iloc[:, 1:4]
 
 # Define your color palette
-palette = sns.color_palette("bright", 2*result.shape[0])
+palette = sns.color_palette("YlGnBu_r", 3)
 
 
 plt.figure
@@ -418,12 +420,17 @@ plt.xlabel("weeks of the year")
 plt.show()
 
 plt.figure()
-plt.semilogy((result.head(53).values+result.tail(53).values)/2)
+
+for i, column in enumerate(result.columns):
+    plt.plot((result[column].head(53).values + result[column].tail(53).values) / 2, color=palette[i])
+
+plt.yscale('log')
+
 plt.grid(which="both", alpha=0.5)
 plt.xlabel("weeks of the year")
 plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
-plt.title("Annual baseload variation - Schools")
-plt.legend(["S "+str(i+1) for i, v in enumerate(result.columns)], loc='upper left', bbox_to_anchor=(1, 1))
+plt.title("Annual baseload variation - Administration - small consumers")
+plt.legend(result.columns, loc='upper left', bbox_to_anchor=(1, 1))
 plt.show()
 
 
