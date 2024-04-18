@@ -64,15 +64,15 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list):
             
             # translating from french to english
             if typo == "Ecole":
-                simple_IDs = ["School " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                simple_IDs = ["S" + str(i) + str(j) + str(k) for k in range(len(address_list))]
             elif typo == "Commune" or typo == "Commune2":
-                simple_IDs = ["Administration " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                simple_IDs = ["A" + str(i) + str(j) + str(k) for k in range(len(address_list))]
             elif typo == "Culture":
-                simple_IDs = ["Socio-cultural & Sports " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                simple_IDs = ["C" + str(i) + str(j) + str(k) for k in range(len(address_list))]
             elif typo == "Apems":
-                simple_IDs = ["Day-care " + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                simple_IDs = ["D" + str(i) + str(j) + str(k) for k in range(len(address_list))]
             else : 
-                simple_IDs = ["other" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                simple_IDs = ["O" + str(i) + str(j) + str(k) for k in range(len(address_list))]
                 
                 
                 
