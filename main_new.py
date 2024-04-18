@@ -121,13 +121,16 @@ for typo in Typo_list:
     
 #print(Typo_loads)
 
+
 #%% get consumptions sorted
+
+typo_loads2, ID_mapping = p.discriminate_typologies2(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
 
 Cons_list = ["bas", "moyen", "haut", "fort"]
 
-Cons_loads_2022 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2022_dict, Cons_list)
+Cons_loads_2022 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2022_dict, Cons_list, ID_mapping)
 
-Cons_loads_2023 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2023_dict, Cons_list)
+Cons_loads_2023 = p.discriminate_conslevels(Building_dict_2023, LoadCurve_2023_dict, Cons_list, ID_mapping)
 
 Cons_all_loads = {}
 
