@@ -226,8 +226,11 @@ Period = "day"
 tendency_day = f.period_tendencies_new(Loads, Period)
 data_day = f.typical_period(Loads, Period)
 
+# Convert timestamp index to string index
+data_day.index = data_day.index.strftime('%Y-%m-%d %H:%M:%S')
+
 # Typical day for all infrastructures 
-#f.plot_typical_day(data_day, Typology)
+f.plot_typical_day(data_day, Typology)
 
 
 #daily smoothing along the year for all insfrastrctures 

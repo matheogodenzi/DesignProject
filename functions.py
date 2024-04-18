@@ -393,7 +393,7 @@ def typical_period(df, period):
 def plot_typical_day(data_day, typology):
     indices_list = data_day.index.tolist()
     
-    datetime_list = [datetime.strptime(index, '%d.%m.%Y %H:%M:%S') for index in indices_list]
+    datetime_list = [datetime.strptime(index, '%Y-%m-%d %H:%M:%S') for index in indices_list]
     time_list = [dt.time().strftime("%H:%M") for dt in datetime_list]
     
     plt.plot(time_list, data_day, linewidth=0.5)
@@ -447,7 +447,41 @@ def plot_typical_week(data_week, typology):
 
 
 
+def get_baseload_2(df):
+    """
+    Delineate annual tendencies over days, weeks, and months
 
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
+
+    Returns
+    -------
+    result : DataFrame
+        DataFrame containing the mean of the 6 smallest values of each column.
+    """
+
+    num_rows = df.shape[0]
+    averages = []
+
+    # Iterate over the DataFrame in chunks of 96 rows
+    chunk_size = 96
+    for i in range(0, num_rows, chunk_size):
+        chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
+        
+        # Calculate the 6 smallest values of each column
+        smallest_values = chunk.iloc[:16, :] #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
+        #print(smallest_values)
+        # Calculate the mean of the smallest values for each column
+        average_of_smallest = smallest_values.mean()
+        
+        averages.append(average_of_smallest)  # Append the averages to the list
+    
+    # Concatenate the averages into a single DataFrame
+    result = pd.concat(averages, axis=1).T
+    
+    return result
 
 
 

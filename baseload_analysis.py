@@ -351,7 +351,7 @@ Loads = Typo_all_loads[Typology]
 
 df = Loads.astype(np.longdouble)
 
-print(df[df.index.duplicated()])
+#print(df[df.index.duplicated()])
 
 # Remove duplicate indices
 df_no_duplicates = df[~df.index.duplicated(keep='first')]
@@ -385,7 +385,7 @@ for i, column in enumerate(df.columns):
         model.fit(X, y)
         
         # Plot data points
-        ax.scatter(X, y, color=color, alpha=0.3)
+        ax.plot(X, y, color=color, alpha=0.3)
         
         # Plot regression line
         ax.plot(X, model.predict(X), color=color, label=column, linewidth=3, alpha = 1)
@@ -401,7 +401,7 @@ plt.show()
 
 
 
-#%%
+#%% average weekly baseloads
 
 
 
@@ -467,17 +467,17 @@ plt.figure()
 for i, column in enumerate(result.columns):
     plt.plot((result[column].head(53).values + result[column].tail(53).values) / 2, color=my_colors[i])
 
-plt.yscale('log')
+#plt.yscale('log')
 
 plt.grid(which="both", alpha=0.5)
 plt.xlabel("weeks of the year")
 plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
-plt.title("Annual baseload variation - Administration - small consumers")
+plt.title("Annual baseload variation - Schools")
 plt.legend(result.columns, loc='upper left', bbox_to_anchor=(1, 1))
 plt.show()
 
 
-#%%
+#%% avrage weekly baseload 
 
 # parameters to change
 Typology = "Ecole"
@@ -531,3 +531,69 @@ plt.grid()
 plt.xlabel("weeks of the year")
 plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
 plt.show()
+
+#%% average daily baeload 
+
+
+# parameters to change
+Typology = "Ecole"
+Period = "day"
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+df = Loads.astype(np.longdouble)
+
+#print(df[df.index.duplicated()])
+
+# Remove duplicate indices
+#df_no_duplicates = df[~df.index.duplicated(keep='first')]
+
+baseloads = get_baseload_2(df)
+
+
+# smoothing calculation
+
+
+#selecting a subset 
+#result = result.iloc[:, :]
+
+# Define your color palette
+my_colors = sb.color_palette("hls", result.shape[1])
+#my_colors = sb.color_palette("Spectral", result.shape[1])
+#my_colors = sb.color_palette("magma", result.shape[1])
+
+#my_colors = sb.color_palette("icefire", result.shape[1])
+#my_colors = sb.color_palette("husl", result.shape[1])
+#my_colors = sb.color_palette("rocket", result.shape[1])
+#my_colors = sb.color_palette("viridis", result.shape[1])
+#my_colors = sb.color_palette("mako", result.shape[1])
+#my_colors = sb.color_palette("flare", result.shape[1])
+#palette = sns.color_palette("YlGnBu_r", result.shape[1])
+
+plt.figure
+plt.plot(baseloads.head(365))
+plt.plot(baseloads.tail(365))
+plt.grid()
+plt.xlabel("weeks of the year")
+plt.show()
+
+plt.figure()
+
+for i, column in enumerate(result.columns):
+    
+    #if i !=6 and i !=7 :
+        plt.plot((baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2, color=my_colors[i])
+    #if i == 3:
+        #break
+#plt.yscale('log')
+
+plt.grid(which="both", alpha=0.5)
+plt.xlabel("Days of the year")
+plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
+plt.title("Annual baseload variation - larger consumers - Schools").set_position([0.67, 1])
+plt.legend(result.columns, loc='upper left', bbox_to_anchor=(1, 1))
+#plt.subplots_adjust(top=2)
+plt.show()
+
+
