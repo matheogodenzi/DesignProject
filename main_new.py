@@ -122,7 +122,7 @@ for typo in Typo_list:
 #print(Typo_loads)
 
 
-#%% get consumptions sorted
+#%% consumption dictionnary sorting
 
 typo_loads2, ID_mapping = p.discriminate_typologies2(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
 
@@ -202,6 +202,88 @@ plt.ylabel("Mean daily consumption [$kWh_{el}/m^2$]")
 plt.title("Mean day consumption - typology distinction")
 plt.grid()
 plt.show()
+
+
+#%%  benchmarks
+typical_day = f.typical_period(typical_year, Period)
+
+#color list 
+color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple", ]
+
+#initiating figure
+plt.figure()
+for i, typo in enumerate(Typo_list) : 
+    
+    loads = Typo_all_loads[typo]
+    # Obtain a typical year
+    t_year = f.typical_period(loads,  "year")
+    #obtain typical day 
+    t_day = f.typical_period(t_year, "day")
+    
+
+    
+
+    for j, col in enumerate(t_day.columns):
+        t_day[col].plot(color=color[i], label=col)
+
+
+plt.yscale("log") 
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Typologies")
+plt.tight_layout(rect=[0, 0, 1, 2.3])
+plt.xlabel("Heures")
+plt.ylabel("Mean daily consumption [$kWh_{el}/m^2$]")
+plt.title("Mean day consumption - typology distinction")
+plt.grid()
+plt.show()
+
+#%%  benchmarks
+
+#my_colors = sb.color_palette("Spectral", result.shape[1])
+#my_colors = sb.color_palette("magma", result.shape[1])
+
+#my_colors = sb.color_palette("icefire", result.shape[1])
+#my_colors = sb.color_palette("husl", result.shape[1])
+#my_colors = sb.color_palette("rocket", result.shape[1])
+#my_colors = sb.color_palette("viridis", result.shape[1])
+#my_colors = sb.color_palette("mako", result.shape[1])
+#my_colors = sb.color_palette("flare", result.shape[1])
+#color list 
+#color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple"]
+color = sb.color_palette("husl", 29, 1)
+colori = 0
+#initiating figure
+plt.figure()
+for i, typo in enumerate(Typo_list) : 
+    
+    loads = Typo_all_loads[typo]
+    # Obtain a typical year
+    t_year = f.typical_period(loads,  "year")
+    #obtain typical day 
+    t_day = f.typical_period(t_year, "day")
+    
+
+    
+
+    for j, col in enumerate(t_day.columns):
+        t_day[col].plot(color=color[colori], label=col)
+        colori += 1
+
+plt.yscale("log")
+
+# Manually set x-axis ticks to display only the hour component
+hours = mdates.HourLocator(interval=400)
+hours_fmt = mdates.DateFormatter("%H:%M")
+plt.gca().xaxis.set_major_locator(hours)
+plt.gca().xaxis.set_major_formatter(hours_fmt)
+
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Consumers")
+plt.tight_layout(rect=[0, 0, 1, 2.3])
+plt.xlabel("Hours")
+plt.ylabel("Mean daily consumption [$kWh_{el}/m^2$]")
+plt.title("Mean daily consumption")
+plt.grid()
+plt.show()
+
 #%% plotting one specific load over given benchmark 
 
 Load1 = typical_day.iloc[:, 7].to_frame()
