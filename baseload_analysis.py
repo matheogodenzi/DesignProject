@@ -268,7 +268,7 @@ def get_baseload(df):
         chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
         
         # Calculate the 6 smallest values of each column
-        smallest_values = chunk.apply(lambda x: x.nsmallest(24)) #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
+        smallest_values = chunk.apply(lambda x: x.nsmallest(32)) #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
 
         # Calculate the mean of the smallest values for each column
         average_of_smallest = smallest_values.mean()
@@ -280,8 +280,42 @@ def get_baseload(df):
     
     return result
 
+#%%
+def get_baseload_2(df):
+    """
+    Delineate annual tendencies over days, weeks, and months
 
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
 
+    Returns
+    -------
+    result : DataFrame
+        DataFrame containing the mean of the 6 smallest values of each column.
+    """
+
+    num_rows = df.shape[0]
+    averages = []
+
+    # Iterate over the DataFrame in chunks of 96 rows
+    chunk_size = 96
+    for i in range(0, num_rows, chunk_size):
+        chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
+        
+        # Calculate the 6 smallest values of each column
+        smallest_values = chunk.iloc[:16, :] #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
+        #print(smallest_values)
+        # Calculate the mean of the smallest values for each column
+        average_of_smallest = smallest_values.mean()
+        
+        averages.append(average_of_smallest)  # Append the averages to the list
+    
+    # Concatenate the averages into a single DataFrame
+    result = pd.concat(averages, axis=1).T
+    
+    return result
 
 
 #%%
@@ -291,13 +325,13 @@ df = Loads.astype(np.longdouble)
 print(df[df.index.duplicated()])
 
 # Remove duplicate indices
-df_no_duplicates = df[~df.index.duplicated(keep='first')]
+#df_no_duplicates = df[~df.index.duplicated(keep='first')]
 
 #%%
-baseloads = get_baseload(df_no_duplicates)
-
+baseloads = get_baseload(df)
+baseloads2 = get_baseload_2(df)
 plt.figure()
-plt.plot(baseloads)
+plt.plot(baseloads-baseloads2)
 plt.show()
 
 #%% Linear regressions 
@@ -322,7 +356,7 @@ print(df[df.index.duplicated()])
 # Remove duplicate indices
 df_no_duplicates = df[~df.index.duplicated(keep='first')]
 
-baseloads = get_baseload(df_no_duplicates)
+baseloads = get_baseload_2(df_no_duplicates)
 
 
 # smoothing calculations
@@ -372,7 +406,7 @@ plt.show()
 
 
 # parameters to change
-Typology = "Commune"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -385,7 +419,7 @@ print(df[df.index.duplicated()])
 # Remove duplicate indices
 df_no_duplicates = df[~df.index.duplicated(keep='first')]
 
-baseloads = get_baseload(df_no_duplicates)
+baseloads = get_baseload_2(df_no_duplicates)
 
 
 # smoothing calculations
@@ -406,11 +440,20 @@ for i in range(0, num_rows, chunk_size):
 result = pd.concat(averages, axis=1).T
 
 #selecting a subset 
-result = result.iloc[:, 1:4]
+#result = result.iloc[:, :]
 
 # Define your color palette
-palette = sns.color_palette("YlGnBu_r", 3)
+my_colors = sb.color_palette("hls", result.shape[1])
+#my_colors = sb.color_palette("Spectral", result.shape[1])
+#my_colors = sb.color_palette("magma", result.shape[1])
 
+#my_colors = sb.color_palette("icefire", result.shape[1])
+#my_colors = sb.color_palette("husl", result.shape[1])
+#my_colors = sb.color_palette("rocket", result.shape[1])
+#my_colors = sb.color_palette("viridis", result.shape[1])
+#my_colors = sb.color_palette("mako", result.shape[1])
+#my_colors = sb.color_palette("flare", result.shape[1])
+#palette = sns.color_palette("YlGnBu_r", result.shape[1])
 
 plt.figure
 plt.plot(result.head(53))
@@ -422,7 +465,7 @@ plt.show()
 plt.figure()
 
 for i, column in enumerate(result.columns):
-    plt.plot((result[column].head(53).values + result[column].tail(53).values) / 2, color=palette[i])
+    plt.plot((result[column].head(53).values + result[column].tail(53).values) / 2, color=my_colors[i])
 
 plt.yscale('log')
 
@@ -450,7 +493,7 @@ print(df[df.index.duplicated()])
 # Remove duplicate indices
 df_no_duplicates = df[~df.index.duplicated(keep='first')]
 
-baseloads = get_baseload(df_no_duplicates)
+baseloads = get_baseload_2(df_no_duplicates)
 
 
 # smoothing calculations

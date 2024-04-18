@@ -293,6 +293,43 @@ for column_name in Loads.columns :
 
 #%%
 
+def get_baseload(df):
+    """
+    Delineate annual tendencies over days, weeks, and months
+
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
+
+    Returns
+    -------
+    result : DataFrame
+        DataFrame containing the mean of the 6 smallest values of each column.
+    """
+
+    num_rows = df.shape[0]
+    averages = []
+
+    # Iterate over the DataFrame in chunks of 96 rows
+    chunk_size = 96
+    for i in range(0, num_rows, chunk_size):
+        chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
+        
+        # Calculate the 6 smallest values of each column
+        smallest_values = chunk.apply(lambda x: x.nsmallest(24)) #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
+
+        # Calculate the mean of the smallest values for each column
+        average_of_smallest = smallest_values.mean()
+        
+        averages.append(average_of_smallest)  # Append the averages to the list
+    
+    # Concatenate the averages into a single DataFrame
+    result = pd.concat(averages, axis=1).T
+    
+    return result
+
+#%%
 
 
 
@@ -337,9 +374,13 @@ result = pd.concat(averages, axis=1).T
 my_colors = sb.color_palette("hls", result.shape[1])
 #my_colors = sb.color_palette("Spectral", result.shape[1])
 #my_colors = sb.color_palette("magma", result.shape[1])
+
 #my_colors = sb.color_palette("icefire", result.shape[1])
 #my_colors = sb.color_palette("husl", result.shape[1])
-
+#my_colors = sb.color_palette("rocket", result.shape[1])
+#my_colors = sb.color_palette("viridis", result.shape[1])
+#my_colors = sb.color_palette("mako", result.shape[1])
+#my_colors = sb.color_palette("flare", result.shape[1])
 print(f"my colors : {my_colors}")
 
 
@@ -352,14 +393,14 @@ plt.yscale('log')
 plt.grid(which="both", alpha=0.5)
 plt.xlabel("weeks of the year")
 plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
-plt.title("Annual baseload variation - Administration - small consumers")
+plt.title("Annual baseload variation - Schools")
 plt.legend(result.columns, loc='upper left', bbox_to_anchor=(1, 1))
 plt.show()
 
-#%%
+#%% Two consecutive years evolution
 plt.figure
-plt.plot(result.head(53),color=my_colors)
-plt.plot(result.tail(53),color=my_colors)
+plt.plot(result.head(53))
+plt.plot(result.tail(53))
 plt.grid()
 plt.xlabel("weeks of the year")
 plt.show()
