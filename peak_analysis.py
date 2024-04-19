@@ -228,7 +228,7 @@ for j in range(sliced_3d_array.shape[2]):
         plt.scatter(x, sliced_3d_array[i, :, j], c="royalblue", alpha=0.3, s=15)
         
 
-    plt.plot(percentile_5[:,j], c="orange", label="5% perenctile")
+    plt.plot(percentile_5[:,j], c="orange", label="5% percentile")
     plt.plot(median_depth[:, j], c="red", label="median")
     plt.plot(percentile_95[:,j], c="purple", label="95% percentile")
     plt.xlabel("quarter of hours (to be changed)")
