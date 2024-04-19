@@ -287,7 +287,7 @@ df.index = pd.to_datetime(df.index)
 array = df.to_numpy()
 array = array[:7*96*52, :]
 
-# Define the number of rows in each slice
+# Define the number of rows in each sliceshape ana
 rows_per_slice = 7*96
 
 # Calculate the number of slices
