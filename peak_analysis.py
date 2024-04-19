@@ -185,7 +185,7 @@ plt.show()
 #%%
 
 # Specify the month you want to extract (e.g., January)
-desired_month = 12
+desired_month = 11
 
 df.index = pd.to_datetime(df.index)
 
@@ -196,7 +196,10 @@ month_df = df[df.index.month == desired_month]
 weekdays_df = month_df[month_df.index.weekday < 5]
 
 #discarding the 2024 value
-weekdays_df = weekdays_df[:]
+if desired_month == 1 :
+    weekdays_df = weekdays_df[:-1]
+else : 
+    weekdays_df = weekdays_df[:]
 
 Daily_data = weekdays_df.to_numpy()
 
@@ -216,6 +219,7 @@ median_depth = np.median(sliced_3d_array, axis=0)
 # Calculate 5th and 95th percentiles throughout the depth dimension
 percentile_5 = np.percentile(sliced_3d_array, 5, axis=0)
 percentile_95 = np.percentile(sliced_3d_array, 95, axis=0)
+
 
 #%%
 
@@ -238,13 +242,19 @@ for j in range(sliced_3d_array.shape[2]):
     
     plt.show()
 
-#%%
+#%% additional pplots of interest 
 plt.plot(month_df.head(2*96).values)
 plt.show()
 
 plt.plot(weekdays_df.iloc[19*96:20*96].values)
 plt.show()
 
+daily_mean = sliced_3d_array.mean(axis=0)
+
+daily_mean = daily_mean.mean(axis=1)
+
+plt.plot(daily_mean)
+plt.show()
 
 
 
