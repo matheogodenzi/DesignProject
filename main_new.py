@@ -271,11 +271,13 @@ for i, typo in enumerate(Typo_list) :
 plt.yscale("log")
 
 # Manually set x-axis ticks to display only the hour component
-hours = mdates.HourLocator(interval=400)
-hours_fmt = mdates.DateFormatter("%H:%M")
-plt.gca().xaxis.set_major_locator(hours)
-plt.gca().xaxis.set_major_formatter(hours_fmt)
-
+#hours = mdates.HourLocator(interval=365)
+#hours_fmt = mdates.DateFormatter("%H:%M")
+#plt.gca().xaxis.set_major_locator(hours)
+#plt.gca().xaxis.set_major_formatter(hours_fmt)
+tick_labels = ["0"+str(i)+":00" if i < 10 else str(i)+":00" for i in range(0, 24, 2)]
+tick_positions = [i*8 for i in range(12)]
+plt.xticks(tick_positions, tick_labels, rotation=45)
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Consumers")
 plt.tight_layout(rect=[0, 0, 1, 2.3])
 plt.xlabel("Hours")

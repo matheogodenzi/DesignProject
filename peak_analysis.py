@@ -19,6 +19,7 @@ import matplotlib.dates as mdates
 import seaborn as sns
 import matplotlib.pyplot as plt
 from itertools import cycle
+from scipy.stats import shapiro
 
 """functions imports"""
 
@@ -203,6 +204,8 @@ else :
 
 Daily_data = weekdays_df.to_numpy()
 
+Daily_data[Daily_data == 0] = np.nan
+
 # Define the number of rows in each slice
 rows_per_slice = 96
 
@@ -215,11 +218,49 @@ sliced_3d_array = Daily_data.reshape(num_slices, rows_per_slice, -1)
 #calculate median, 5 and 95 percentile
 
 # Calculate median throughout the depth dimension
-median_depth = np.median(sliced_3d_array, axis=0)
+median_depth = np.nanmedian(sliced_3d_array, axis=0)
 # Calculate 5th and 95th percentiles throughout the depth dimension
-percentile_5 = np.percentile(sliced_3d_array, 5, axis=0)
-percentile_95 = np.percentile(sliced_3d_array, 95, axis=0)
+percentile_5 = np.nanpercentile(sliced_3d_array, 5, axis=0)
+percentile_95 = np.nanpercentile(sliced_3d_array, 95, axis=0)
 
+#%% testing the normality of the data
+
+# Create an empty array to store the results
+normality_results_array = np.zeros((sliced_3d_array.shape[1], sliced_3d_array.shape[2]), dtype=int)
+
+# Iterate over the second dimension
+for j in range(sliced_3d_array.shape[1]):
+    # Iterate over the third dimension
+    for k in range(sliced_3d_array.shape[2]):
+        # Extract the slice
+        slice_data = sliced_3d_array[:, j, k]
+        # Perform Shapiro-Wilk test
+        stat, p = shapiro(slice_data)
+        # Assign 1 if normally distributed, 0 otherwise
+        normality_results_array[j, k] = int(p > 0.05)
+
+print("Result array:")
+print(normality_results_array)
+
+#%% Extracting and classifying anomalies
+
+# threshold for classifying anomalies into significative of mild
+threshold = percentile_95 + ((1/3) * (percentile_95 - median_depth))
+
+# Create peak_anomaly_test array
+peak_anomaly_test = np.zeros_like(sliced_3d_array, dtype=int)
+
+# Compare sliced_3d_array with percentile_95 and assign values based on the condition
+peak_anomaly_test[sliced_3d_array > threshold] = 2
+peak_anomaly_test[(sliced_3d_array > percentile_95) & (sliced_3d_array <= threshold)] = 1
+
+#%% creating plotting curves
+anomalies_mild = sliced_3d_array.copy()
+anomalies_signi = sliced_3d_array.copy()
+
+# Mask the values based on the conditions specified by peak_anomaly_test
+anomalies_mild[peak_anomaly_test != 1] = np.nan
+anomalies_signi[peak_anomaly_test != 2] = np.nan
 
 #%%
 
@@ -257,7 +298,43 @@ plt.plot(daily_mean)
 plt.show()
 
 
+#%% plotting with anomalies highlighted
 
+x = np.arange(96)  # Using arange instead of list comprehension
 
+# Initialize the labels for anomalies
+anomalies_mild_label = None
+anomalies_signi_label = None
+
+for j in range(sliced_3d_array.shape[2]):
+    plt.figure()
+    
+    # Plotting the data points
+    for i in range(sliced_3d_array.shape[0]):
+        plt.scatter(x, sliced_3d_array[i, :, j], c="royalblue", alpha=0.3, s=10)
+        plt.scatter(x, anomalies_mild[i, :, j], c="orange", alpha=0.7, s=10)
+        plt.scatter(x, anomalies_signi[i, :, j], c="red", alpha=0.7, s=10)
+        
+        # Set labels for anomalies outside the loop
+        if i == 0:
+            anomalies_mild_label = plt.scatter([], [], c="orange", label="Anomalies Mild", alpha=0.7)
+            anomalies_signi_label = plt.scatter([], [], c="red", label="Anomalies Significant", alpha=0.7)
+    
+    # Plotting percentiles and median
+    plt.plot(percentile_5[:, j], c="orange", label="5% percentile")
+    plt.plot(median_depth[:, j], c="red", label="median")
+    plt.plot(percentile_95[:, j], c="purple", label="95% percentile")
+    
+    # Setting labels, legend, and grid
+    plt.xlabel("Quarter of hours (to be changed)")
+    plt.ylabel("Load [$kWh_{el}/m^2$]")
+    plt.grid()
+    plt.legend(handles=[anomalies_mild_label, anomalies_signi_label])
+    
+    plt.show()
+
+#%%
+
+plt.plot(Daily_data[:,9])
 
 
