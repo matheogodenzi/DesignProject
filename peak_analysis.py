@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from scipy.stats import shapiro
-
+import seaborn as sb
 """functions imports"""
 
 import functions as f
@@ -234,27 +234,9 @@ for j in range(sliced_3d_array.shape[1]):
 print("Result array:")
 print(normality_results_array)
 
-#%% Extracting and classifying anomalies
 
-# threshold for classifying anomalies into significative of mild
-threshold = percentile_95 + ((1/3) * (percentile_95 - median_depth))
 
-# Create peak_anomaly_test array
-peak_anomaly_test = np.zeros_like(sliced_3d_array, dtype=int)
-
-# Compare sliced_3d_array with percentile_95 and assign values based on the condition
-peak_anomaly_test[sliced_3d_array > threshold] = 2
-peak_anomaly_test[(sliced_3d_array > percentile_95) & (sliced_3d_array <= threshold)] = 1
-
-#%% creating plotting curves
-anomalies_mild = sliced_3d_array.copy()
-anomalies_signi = sliced_3d_array.copy()
-
-# Mask the values based on the conditions specified by peak_anomaly_test
-anomalies_mild[peak_anomaly_test != 1] = np.nan
-anomalies_signi[peak_anomaly_test != 2] = np.nan
-
-#%%
+#%% Simple plot with percentiles
 
 x = np.array([i for i in range(96)])
 
@@ -275,8 +257,29 @@ for j in range(sliced_3d_array.shape[2]):
     
     plt.show()
 
+#%% Extracting and classifying anomalies
 
-#%% plotting with anomalies highlighted
+# threshold for classifying anomalies into significative of mild
+threshold = percentile_95 + ((1/3) * (percentile_95 - median_depth))
+
+# Create peak_anomaly_test array
+peak_anomaly_test = np.zeros_like(sliced_3d_array, dtype=int)
+
+# Compare sliced_3d_array with percentile_95 and assign values based on the condition
+peak_anomaly_test[sliced_3d_array > threshold] = 2
+peak_anomaly_test[(sliced_3d_array > percentile_95) & (sliced_3d_array <= threshold)] = 1
+
+#%% creating plotting curves
+anomalies_mild = sliced_3d_array.copy()
+anomalies_signi = sliced_3d_array.copy()
+
+# Mask the values based on the conditions specified by peak_anomaly_test
+anomalies_mild[peak_anomaly_test != 1] = np.nan
+anomalies_signi[peak_anomaly_test != 2] = np.nan
+
+
+
+#%% Plotting with anomalies highlighted
 
 x = np.arange(96)  # Using arange instead of list comprehension
 
@@ -310,3 +313,103 @@ for j in range(sliced_3d_array.shape[2]):
     plt.legend(handles=[anomalies_mild_label, anomalies_signi_label])
     plt.rcParams['figure.dpi'] = 300
     plt.show()
+
+#%% Counting the anomalies per category
+
+def count_occurrences(dataframe):
+    # Sum along the first two dimensions to count occurrences of 1s and 2s
+    count_ones = np.sum(dataframe == 1, axis=(0, 1))
+    count_twos = np.sum(dataframe == 2, axis=(0, 1))
+
+    return count_ones, count_twos
+
+# Assuming your dataframe is called 'peak_anomaly_test' with shape (44, 96, 13)
+# Call the function to count occurrences
+count_ones, count_twos = count_occurrences(peak_anomaly_test)
+
+
+#%%Counting occurencies for all months
+
+# Initialize empty data frames to store results
+count_ones_df = pd.DataFrame()
+count_twos_df = pd.DataFrame()
+
+# Loop through desired months
+for desired_month in range(1, 13):
+    df.index = pd.to_datetime(df.index)
+
+    # Extract all instances of the desired month
+    month_df = df[df.index.month == desired_month]
+
+    # Extract weekdays
+    weekdays_df = month_df[month_df.index.weekday < 5]
+
+    # Discard the 2024 value
+    if desired_month == 1:
+        weekdays_df = weekdays_df[:-1]
+    else: 
+        weekdays_df = weekdays_df[:]
+
+    Daily_data = weekdays_df.to_numpy()
+
+    Daily_data[Daily_data == 0] = np.nan
+
+    # Define the number of rows in each slice
+    rows_per_slice = 96
+
+    # Calculate the number of slices
+    num_slices = Daily_data.shape[0] // rows_per_slice
+
+    # Slice the array and reshape to create a 3D array
+    sliced_3d_array = Daily_data.reshape(num_slices, rows_per_slice, -1)
+
+    # Calculate median, 5th and 95th percentile
+    median_depth = np.nanmedian(sliced_3d_array, axis=0)
+    percentile_5 = np.nanpercentile(sliced_3d_array, 5, axis=0)
+    percentile_95 = np.nanpercentile(sliced_3d_array, 95, axis=0)
+
+    # Threshold for classifying anomalies into significant or mild
+    threshold = percentile_95 + ((1/3) * (percentile_95 - median_depth))
+
+    # Create peak_anomaly_test array
+    peak_anomaly_test = np.zeros_like(sliced_3d_array, dtype=int)
+
+    # Compare sliced_3d_array with percentile_95 and assign values based on the condition
+    peak_anomaly_test[sliced_3d_array > threshold] = 2
+    peak_anomaly_test[(sliced_3d_array > percentile_95) & (sliced_3d_array <= threshold)] = 1
+
+    # Call the function to count occurrences
+    count_ones, count_twos = count_occurrences(peak_anomaly_test)
+
+    # Append counts to data frames
+    count_ones_df[desired_month] = count_ones
+    count_twos_df[desired_month] = count_twos
+
+#%% plotting the occurences
+
+# Generate HLS color palette with 13 colors
+hls_palette = sb.color_palette("hls", 13)
+
+# Plot count_ones_df
+plt.figure(figsize=(10, 6))
+for i, client in enumerate(count_ones_df.columns):
+    plt.plot(count_ones_df.index, count_ones_df[client], label=f'Client {client}', color=hls_palette[i])
+plt.title('Occurrences of Mild Anomalies by Month')
+plt.xlabel('Month')
+plt.ylabel('Occurrences')
+plt.xticks(range(1, 13))
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Plot count_twos_df
+plt.figure(figsize=(10, 6))
+for i, client in enumerate(count_twos_df.columns):
+    plt.plot(count_twos_df.index, count_twos_df[client], label=f'Client {client}', color=hls_palette[i])
+plt.title('Occurrences of Significant Anomalies by Month')
+plt.xlabel('Month')
+plt.ylabel('Occurrences')
+plt.xticks(range(1, 13))
+plt.legend()
+plt.grid(True)
+plt.show()
