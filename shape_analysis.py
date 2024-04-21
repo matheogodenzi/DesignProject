@@ -126,8 +126,6 @@ for typo in Typo_list:
 #print(Typo_loads)
 
 
-
-
 #%%
 
 # parameters to change
@@ -187,83 +185,60 @@ plt.show()
 # Specify the month you want to extract (e.g., January)
 desired_month = 12
 
-df.index = pd.to_datetime(df.index)
+Overall_means = []
+for desired_month in range(1, 13):
+    df.index = pd.to_datetime(df.index)
+    
+    # Extract all instances of the desired month
+    month_df = df[df.index.month == desired_month]
+    
+    # Extract weekdays
+    weekdays_df = month_df[month_df.index.weekday < 5]
+    
+    #discarding the 2024 value
+    if desired_month == 1 :
+        weekdays_df = weekdays_df[:-1]
+    else : 
+        weekdays_df = weekdays_df[:]
+    
+    Daily_data = weekdays_df.to_numpy()
+    
+    # Define the number of rows in each slice
+    rows_per_slice = 96
+    
+    # Calculate the number of slices
+    num_slices = Daily_data.shape[0] // rows_per_slice
+    
+    # Slice the array and reshape to create a 3D array
+    sliced_3d_array = Daily_data.reshape(num_slices, rows_per_slice, -1)
+    
+    #calculate median, 5 and 95 percentile
+    
+    # Calculate median throughout the depth dimension
+    median_depth = np.median(sliced_3d_array, axis=0)
+    # Calculate 5th and 95th percentiles throughout the depth dimension
+    percentile_5 = np.percentile(sliced_3d_array, 5, axis=0)
+    percentile_95 = np.percentile(sliced_3d_array, 95, axis=0)
+    
+    
+    daily_mean = sliced_3d_array.mean(axis=0)
+    
+    daily_mean = daily_mean.mean(axis=1)
+    
+    Overall_means.append(daily_mean)
 
-# Extract all instances of the desired month
-month_df = df[df.index.month == desired_month]
-
-# Extract weekdays
-weekdays_df = month_df[month_df.index.weekday < 5]
-
-#discarding the 2024 value
-if desired_month == 1 :
-    weekdays_df = weekdays_df[:-1]
-else : 
-    weekdays_df = weekdays_df[:]
-
-Daily_data = weekdays_df.to_numpy()
-
-# Define the number of rows in each slice
-rows_per_slice = 96
-
-# Calculate the number of slices
-num_slices = Daily_data.shape[0] // rows_per_slice
-
-# Slice the array and reshape to create a 3D array
-sliced_3d_array = Daily_data.reshape(num_slices, rows_per_slice, -1)
-
-#calculate median, 5 and 95 percentile
-
-# Calculate median throughout the depth dimension
-median_depth = np.median(sliced_3d_array, axis=0)
-# Calculate 5th and 95th percentiles throughout the depth dimension
-percentile_5 = np.percentile(sliced_3d_array, 5, axis=0)
-percentile_95 = np.percentile(sliced_3d_array, 95, axis=0)
-
-
-daily_mean = sliced_3d_array.mean(axis=0)
-
-daily_mean = daily_mean.mean(axis=1)
+daily_mean = np.mean(np.array(Overall_means), axis=0)
 
 plt.figure()
-plt.plot(daily_mean/np.max(daily_mean), label="Mean daily profile", c="turquoise")
+plt.plot(daily_mean/np.max(daily_mean), label="Mean daily profile", c="royalblue")
 tick_labels = ["0"+str(i)+":00" if i < 10 else str(i)+":00" for i in range(1, 25, 2)]
 tick_positions = [3 +i*8 for i in range(12)]
 plt.xticks(tick_positions, tick_labels, rotation=45)
 plt.xlabel("Hours of the day")
-plt.ylabel("Relative load [%]")
+plt.ylabel("Relative load [-]")
 plt.title("Generic Day")
 plt.legend()
 plt.grid()
-plt.show()
-
-
-#%%
-
-x = np.array([i for i in range(96)])
-
-for j in range(sliced_3d_array.shape[2]):
-    
-    plt.figure()
-    for i in range(sliced_3d_array.shape[0]):
-        plt.scatter(x, sliced_3d_array[i, :, j], c="royalblue", alpha=0.3, s=15)
-        
-
-    plt.plot(percentile_5[:,j], c="orange", label="5% percentile")
-    plt.plot(median_depth[:, j], c="red", label="median")
-    plt.plot(percentile_95[:,j], c="purple", label="95% percentile")
-    plt.xlabel("quarter of hours (to be changed)")
-    plt.ylabel("load [$kWh_{el}/m^2$]")
-    plt.grid()
-    plt.legend()
-    
-    plt.show()
-
-#%% additional pplots of interest 
-plt.plot(month_df.head(2*96).values)
-plt.show()
-
-plt.plot(weekdays_df.iloc[19*96:20*96].values)
 plt.show()
 
 
@@ -310,7 +285,7 @@ tick_positions = [i*96 +96/2 for i in range(7)]
 plt.xticks(tick_positions, tick_labels, rotation=45)
 
 plt.xlabel("Days of the week")
-plt.ylabel("Relative load [%]")
+plt.ylabel("Relative load [-]")
 plt.legend()
 plt.title("Generic week")
 plt.grid()
@@ -343,7 +318,7 @@ Annual_weekly_mean = tendency.mean(axis=1)
 plt.figure()
 plt.plot(Annual_weekly_mean/np.max(Annual_weekly_mean), label="Mean annual profile", c= "salmon")
 plt.xlabel("Weeks of the year")
-plt.ylabel("Relative baseload [%]")
+plt.ylabel("Relative baseload [-]")
 plt.title("Generic year")
 plt.legend()
 plt.grid()

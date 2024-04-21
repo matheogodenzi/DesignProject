@@ -9,16 +9,8 @@ Created on Thu Apr 18 16:26:11 2024
 
 import numpy as np 
 import matplotlib.pyplot as plt 
-import scipy as sp
-import sklearn as skl
 import pandas as pd
 import os
-import seaborn as sb
-from datetime import datetime
-import matplotlib.dates as mdates
-import seaborn as sns
-import matplotlib.pyplot as plt
-from itertools import cycle
 from scipy.stats import shapiro
 
 """functions imports"""
@@ -112,7 +104,7 @@ print(pv_2022_dict)
 #Parkinglot_loads =[]
 
 Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
-
+print(type(Building_dict_2023), type(LoadCurve_2022_dict), type(Typo_list))
 #getting typologies from 2022
 Typo_loads_2022 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
 
@@ -283,20 +275,6 @@ for j in range(sliced_3d_array.shape[2]):
     
     plt.show()
 
-#%% additional pplots of interest 
-plt.plot(month_df.head(2*96).values)
-plt.show()
-
-plt.plot(weekdays_df.iloc[19*96:20*96].values)
-plt.show()
-
-daily_mean = sliced_3d_array.mean(axis=0)
-
-daily_mean = daily_mean.mean(axis=1)
-
-plt.plot(daily_mean)
-plt.show()
-
 
 #%% plotting with anomalies highlighted
 
@@ -330,11 +308,5 @@ for j in range(sliced_3d_array.shape[2]):
     plt.ylabel("Load [$kWh_{el}/m^2$]")
     plt.grid()
     plt.legend(handles=[anomalies_mild_label, anomalies_signi_label])
-    
+    plt.rcParams['figure.dpi'] = 300
     plt.show()
-
-#%%
-
-plt.plot(Daily_data[:,9])
-
-

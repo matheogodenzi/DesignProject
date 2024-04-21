@@ -9,16 +9,11 @@ Created on Fri Apr 12 14:30:43 2024
 
 import numpy as np 
 import matplotlib.pyplot as plt 
-import scipy as sp
-import sklearn as skl
 import pandas as pd
 import os
 import seaborn as sb
-from datetime import datetime
-import matplotlib.dates as mdates
 import seaborn as sns
-import matplotlib.pyplot as plt
-from itertools import cycle
+from sklearn.linear_model import LinearRegression
 
 """functions imports"""
 
@@ -28,9 +23,8 @@ import auto_analysis as aa
 import process_data as p
 
 
-"""data acquisition"""
-
 #%%
+"""data acquisition"""
 
 # DEFINING PATHS
 ## Generic path of the folder in your local terminal 
@@ -156,129 +150,7 @@ typical_year = f.typical_period(Loads,  "year")
 
 Loads_2022 = Typo_loads_2022[Typology]
 Loads_2023 = Typo_loads_2023[Typology]
-#%%
 
-
-# Convert index to datetime type if it's not already
-Loads_2022.index = pd.to_datetime(Loads_2022.index)
-
-baseload_df = pd.DataFrame(columns=Loads_2022.columns)
-
-i = 0
-for (year, month, day), group in Loads_2022.groupby([Loads_2022.index.year, Loads_2022.index.month, Loads_2022.index.day]):
-    #data_by_day.append(group)
-    
-    # Calculate the average of the smallest values of each column within each group
-    average_of_smallest_values = group.apply(lambda x: x.nsmallest(6).mean())
-    
-    
-    print(day, month)
-    # Display the result
-    print(average_of_smallest_values)
-    print()
-    i+=1
-    
-
-"""
-for column_name in Loads_2022.columns : 
-    
-    # Calculate the 10th percentile value for the chosen column
-    percentile_10 = Loads[column_name].quantile(0.1)
-    
-    # Extract the values from the chosen column that are less than or equal to the 10th percentile
-    lowest_10_percentile = Loads[Loads[column_name] <= percentile_10][column_name]
-    
-    plt.plot(lowest_10_percentile)
-    plt.show()
-    exit()
-"""
-#%%
-
-
-# Create an empty DataFrame with columns for 'Day' and 'Month'
-results_df = pd.DataFrame(columns=Loads_2022.columns)
-
-df = Loads_2022.astype(np.longdouble)
-
-for (year, month, day), group in df.groupby([df.index.year, df.index.month, df.index.day]):
-    # Calculate the average of the smallest values of each column within each group
-    
-    average_of_smallest_values = group.apply(lambda x: x.nsmallest(3).mean())
-    print(group.shape)
-    # Create a DataFrame for the current iteration
-    current_df = pd.DataFrame(average_of_smallest_values).T  # Transpose to make it a row
-    #current_df['Day'] = day
-    #current_df['Month'] = month
-    
-    # Set datetime index for the current iteration
-    current_df.index = pd.to_datetime([f'{year}-{month}-{day}'])
-    
-    # Append the DataFrame to the results DataFrame
-    results_df = pd.concat([results_df, current_df])
-    
-    
-# Display the filled DataFrame
-print(results_df)
-
-#%%
-plt.figure()
-plt.plot(results_df)
-plt.legend([i for i in range(results_df.shape[0])])
-plt.show
-
-plt.figure()
-plt.plot(results_df)
-plt.show()
-
-#%% test 
-
-Period = "day"
-
-tendency_day = f.period_tendencies_new(Loads_2022, Period)
-
-
-plt.plot(results_df.iloc[:,3].values[:] - tendency_day.iloc[:,3].values[:])
-plt.show()
-
-#%%
-
-import pandas as pd
-
-def get_baseload(df):
-    """
-    Delineate annual tendencies over days, weeks, and months
-
-    Parameters
-    ----------
-    df : DataFrame
-        Input DataFrame.
-
-    Returns
-    -------
-    result : DataFrame
-        DataFrame containing the mean of the 6 smallest values of each column.
-    """
-
-    num_rows = df.shape[0]
-    averages = []
-
-    # Iterate over the DataFrame in chunks of 96 rows
-    chunk_size = 96
-    for i in range(0, num_rows, chunk_size):
-        chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
-        
-        # Calculate the 6 smallest values of each column
-        smallest_values = chunk.apply(lambda x: x.nsmallest(32)) #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
-
-        # Calculate the mean of the smallest values for each column
-        average_of_smallest = smallest_values.mean()
-        
-        averages.append(average_of_smallest)  # Append the averages to the list
-    
-    # Concatenate the averages into a single DataFrame
-    result = pd.concat(averages, axis=1).T
-    
-    return result
 
 #%%
 def get_baseload_2(df):
@@ -318,32 +190,10 @@ def get_baseload_2(df):
     return result
 
 
-#%%
-
-df = Loads.astype(np.longdouble)
-
-print(df[df.index.duplicated()])
-
-# Remove duplicate indices
-#df_no_duplicates = df[~df.index.duplicated(keep='first')]
-
-#%%
-baseloads = get_baseload(df)
-baseloads2 = get_baseload_2(df)
-plt.figure()
-plt.plot(baseloads-baseloads2)
-plt.show()
-
 #%% Linear regressions 
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-
-
 # parameters to change
-Typology = "Apems"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -366,36 +216,65 @@ Loads = Typo_all_loads[Typology]
 df  = baseloads
 
 # Define your color palette
-palette = sns.color_palette("bright", df.shape[0])
+palette = sns.color_palette("hls", df.shape[1])
 # Create an iterator to cycle through the colors
-color_iterator = cycle(palette)
+#color_iterator = cycle(palette)
 # Create subplots
-fig, ax = plt.subplots(figsize=(25, 10))
+fig, ax = plt.subplots(figsize=(8, 5))
+
+coef_df =  pd.DataFrame({'slope': [], 'y-intercept': []})
 
 # Perform linear regression and plot for each column
 for i, column in enumerate(df.columns):
-    #if i != 6 and i != 7 : 
-        # Get the next color from the iterator
-        color = next(color_iterator)
-        X = np.array(df.index).reshape(-1, 1)   # Independent variable
-        y = df[column].values.reshape(-1, 1)              # Dependent variable
-        
-        # Fit linear regression model
-        model = LinearRegression()
-        model.fit(X, y)
-        
-        # Plot data points
-        ax.plot(X, y, color=color, alpha=0.3)
-        
-        # Plot regression line
-        ax.plot(X, model.predict(X), color=color, label=column, linewidth=3, alpha = 1)
-        
-        # Set labels and title
-        ax.set_title(f'{column}')
-        ax.set_xlabel('Independent Variable')
-        ax.set_ylabel('Dependent Variable')
-        ax.legend()
+    #if i in [4, 5, 8, 9, 11, 13]: 
+            #plt.ylim(6e-13, 3e-12)
+    #if i in [6, 7, 10, 12]: 
+    #if i in [0, 1, 2, 3]:
+            #plt.ylim(0, 7e-15)
+            
+            # Replace 0 values with NaN
+            infra = df[column].copy()
+            # Convert zeros to NaN
+            infra.replace(0, np.nan, inplace=True)
+            
+            # Drop NaN values
+            infra.dropna(inplace=True)
+    
+            X = np.array(infra.index).reshape(-1, 1)   # Independent variable
+            print(X)
+            y = infra.values.reshape(-1, 1)              # Dependent variable
+            
+            # Plot data points
+            ax.scatter(X, y, color=palette[i], alpha=0.3, s=10)
+            
+            
+            # Fit linear regression model
+            model = LinearRegression()
+            model.fit(X, y)
+            
+            # Extract regression coefficients
+            coefficients = model.coef_
+            intercept = model.intercept_
+            
+            specific_values = {'slope': coefficients[0] , 'y-intercept': intercept}
 
+            coef_df = coef_df.append(specific_values, ignore_index=True)
+                        
+            # Plot regression line
+            ax.plot(X, model.predict(X), c=palette[i], label=column, linewidth=2, alpha = 1)
+            
+            # Set labels and title
+            ax.set_title(f'{column}')
+            ax.set_xlabel('Days')
+            ax.set_ylabel('Baseload [$kWh_{el}/m^2$]')
+            ax.legend()
+
+#plt.ylim(0, 3e-12)
+plt.yscale("log")
+plt.title("All Schools")
+# Place legend outside the plot
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.grid(which='both')
 plt.tight_layout()
 plt.show()
 
@@ -439,8 +318,6 @@ for i in range(0, num_rows, chunk_size):
 # Concatenate the averages into a single DataFrame
 result = pd.concat(averages, axis=1).T
 
-#selecting a subset 
-#result = result.iloc[:, :]
 
 # Define your color palette
 my_colors = sb.color_palette("hls", result.shape[1])
@@ -477,7 +354,7 @@ plt.legend(result.columns, loc='upper left', bbox_to_anchor=(1, 1))
 plt.show()
 
 
-#%% avrage weekly baseload 
+#%% average monthly baseload 
 
 # parameters to change
 Typology = "Ecole"
@@ -493,7 +370,7 @@ print(df[df.index.duplicated()])
 # Remove duplicate indices
 df_no_duplicates = df[~df.index.duplicated(keep='first')]
 
-baseloads = get_baseload_2(df_no_duplicates)
+baseloads = f.get_baseload_2(df_no_duplicates)
 
 
 # smoothing calculations
@@ -549,7 +426,7 @@ df = Loads.astype(np.longdouble)
 # Remove duplicate indices
 #df_no_duplicates = df[~df.index.duplicated(keep='first')]
 
-baseloads = get_baseload_2(df)
+baseloads = f.get_baseload_2(df)
 
 
 # smoothing calculation
@@ -581,18 +458,23 @@ plt.show()
 plt.figure()
 
 for i, column in enumerate(result.columns):
+    #if i in [4, 5, 8, 9, 11, 13]: 
+    #if i in [6, 7, 10, 12]: 
+    #if i in [0, 1, 2, 3]:
     
-    #if i !=6 and i !=7 :
-        plt.plot((baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2, color=my_colors[i])
-    #if i == 3:
-        #break
+            if column == "S202" or column == "S301":
+                plt.plot((baseloads[column].tail(365).values), color=my_colors[i], label=column)
+            else : 
+                plt.plot((baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2, color=my_colors[i], label=column)
+
 #plt.yscale('log')
 
 plt.grid(which="both", alpha=0.5)
 plt.xlabel("Days of the year")
 plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
-plt.title("Annual baseload variation - larger consumers - Schools").set_position([0.67, 1])
-plt.legend(result.columns, loc='upper left', bbox_to_anchor=(1, 1))
+plt.title("Lower medium-level consumers - Schools").set_position([0.55, 1])
+plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+#plt.legend()
 #plt.subplots_adjust(top=2)
 plt.show()
 
