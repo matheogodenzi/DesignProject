@@ -242,7 +242,7 @@ Period = "week"
 Loads = Typo_all_loads[Typology]
 
 typical_period_load = f.typical_period(Loads, Period)
-single_load = typical_period_load.iloc[:,4].to_frame()
+single_load = typical_period_load.iloc[:,10].to_frame()
 
 #typical_period_test = c.typical_period_control(single_load, typical_period_load)
 #print(typical_period_test)
