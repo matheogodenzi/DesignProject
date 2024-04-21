@@ -223,11 +223,12 @@ palette = sns.color_palette("hls", df.shape[1])
 fig, ax = plt.subplots(figsize=(8, 5))
 
 coef_df =  pd.DataFrame({'slope': [], 'y-intercept': []})
+relative_slope = []
 
 # Perform linear regression and plot for each column
 for i, column in enumerate(df.columns):
-    #if i in [4, 5, 8, 9, 11, 13]: 
-            #plt.ylim(6e-13, 3e-12)
+    if i in [4, 5, 8, 9, 11, 13]: 
+            plt.ylim(6e-13, 3e-12)
     #if i in [6, 7, 10, 12]: 
     #if i in [0, 1, 2, 3]:
             #plt.ylim(0, 7e-15)
@@ -241,7 +242,7 @@ for i, column in enumerate(df.columns):
             infra.dropna(inplace=True)
     
             X = np.array(infra.index).reshape(-1, 1)   # Independent variable
-            print(X)
+            #print(X)
             y = infra.values.reshape(-1, 1)              # Dependent variable
             
             # Plot data points
@@ -256,13 +257,16 @@ for i, column in enumerate(df.columns):
             coefficients = model.coef_
             intercept = model.intercept_
             
-            specific_values = {'slope': coefficients[0] , 'y-intercept': intercept}
+            specific_values = {'slope': coefficients[0][0] , 'y-intercept': intercept[0]}
 
             coef_df = coef_df.append(specific_values, ignore_index=True)
-                        
+    
             # Plot regression line
-            ax.plot(X, model.predict(X), c=palette[i], label=column, linewidth=2, alpha = 1)
+            y_reg = model.predict(X)
+            #print(type(y_reg))
+            ax.plot(X, y_reg, c=palette[i], label=column, linewidth=2, alpha = 1)
             
+            relative_slope.append(coefficients[0][0]/y_reg[0][0])
             # Set labels and title
             ax.set_title(f'{column}')
             ax.set_xlabel('Days')
@@ -478,4 +482,19 @@ plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
 #plt.subplots_adjust(top=2)
 plt.show()
 
+#%% Relative tendency differences between consumers 
 
+y = np.array([3.812e-4, -3.545e-4, 1/2*-3.657e-4, -3.433e-4, 440/730*1.356e-3, -1.348e-4, -5.077e-4, -3.588e-4, -2.611e-4, -3.970e-4, -3.741e-5, 2.538e-5, 4.603e-4])
+#440/730 because different time series for S301, same reasoning for S202
+x = np.array(["S100", "S101", "S201", "S202", "S301", "S102", "S200", "S300", "S302","S000", "S001", "S002", "S003" ])
+
+
+# Create a bar plot
+plt.bar(np.arange(len(y)), 100*730*y)
+
+# Adding labels under each bar
+plt.xticks(np.arange(len(x)), x)
+plt.title("Total bi-annual mean baseload variation")
+plt.xlabel("Consumers IDs")
+plt.ylabel("baseload variation [%]")
+plt.grid(axis='y')
