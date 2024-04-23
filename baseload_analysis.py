@@ -467,10 +467,14 @@ for i, column in enumerate(result.columns):
     #if i in [0, 1, 2, 3]:
     
             if column == "S202" or column == "S301":
-                plt.plot((baseloads[column].tail(365).values), color=my_colors[i], label=column)
+                mean = (baseloads[column].tail(365).values)
+                plt.plot(mean, color=my_colors[i], label=column)
             else : 
-                plt.plot((baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2, color=my_colors[i], label=column)
+                mean = (baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
+                plt.plot(mean, color=my_colors[i], label=column)
 
+            print(f"{column} : {np.max(mean)/np.min(mean)}")
+            
 #plt.yscale('log')
 
 plt.grid(which="both", alpha=0.5)
@@ -484,17 +488,20 @@ plt.show()
 
 #%% Relative tendency differences between consumers 
 
-y = np.array([3.812e-4, -3.545e-4, 1/2*-3.657e-4, -3.433e-4, 440/730*1.356e-3, -1.348e-4, -5.077e-4, -3.588e-4, -2.611e-4, -3.970e-4, -3.741e-5, 2.538e-5, 4.603e-4])
-#440/730 because different time series for S301, same reasoning for S202
+y = np.array([3.812e-4, -3.545e-4, -3.657e-4, -3.433e-4, 1.356e-3, -1.348e-4, -5.077e-4, -3.588e-4, -2.611e-4, -3.970e-4, -3.741e-5, 2.538e-5, 4.603e-4])
+
 x = np.array(["S100", "S101", "S201", "S202", "S301", "S102", "S200", "S300", "S302","S000", "S001", "S002", "S003" ])
 
 
 # Create a bar plot
-plt.bar(np.arange(len(y)), 100*730*y)
+plt.bar(np.arange(len(y)), 100*365*y, color="royalblue")
+
+print(100*365*y)
 
 # Adding labels under each bar
 plt.xticks(np.arange(len(x)), x)
-plt.title("Total bi-annual mean baseload variation")
+plt.tick_params(axis='both', which='major', labelsize=9)
+plt.title("Mean yearly baseload variation")
 plt.xlabel("Consumers IDs")
 plt.ylabel("baseload variation [%]")
 plt.grid(axis='y')
