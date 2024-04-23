@@ -2,7 +2,7 @@
 """
 Created on Thu Apr 18 16:26:11 2024
 
-@author: matheo
+@author: matheo & mika
 """
 
 """libraries import"""
@@ -392,20 +392,20 @@ hls_palette = sb.color_palette("hls", 13)
 
 # Plot count_ones_df
 plt.figure(figsize=(10, 6))
-for i, client in enumerate(count_ones_df.columns):
-    plt.plot(count_ones_df.index, count_ones_df[client], label=f'Client {client}', color=hls_palette[i])
+for client in count_ones_df.columns:
+    plt.plot(count_ones_df.index, count_ones_df[client], label=Loads.columns[client-1], color=hls_palette[client-1])
 plt.title('Occurrences of Mild Anomalies by Month')
 plt.xlabel('Month')
 plt.ylabel('Occurrences')
 plt.xticks(range(1, 13))
-plt.legend()
+plt.legend(loc='center left', bbox_to_anchor=(0, 0.295))
 plt.grid(True)
 plt.show()
 
 # Plot count_twos_df
 plt.figure(figsize=(10, 6))
 for i, client in enumerate(count_twos_df.columns):
-    plt.plot(count_twos_df.index, count_twos_df[client], label=f'Client {client}', color=hls_palette[i])
+    plt.plot(count_twos_df.index, count_twos_df[client], label=Loads.columns[client-1], color=hls_palette[client-1])
 plt.title('Occurrences of Significant Anomalies by Month')
 plt.xlabel('Month')
 plt.ylabel('Occurrences')
