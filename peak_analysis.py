@@ -207,6 +207,9 @@ num_slices = Daily_data.shape[0] // rows_per_slice
 # Slice the array and reshape to create a 3D array
 sliced_3d_array = Daily_data.reshape(num_slices, rows_per_slice, -1)
 
+# take instead only last 22 slices, so that only last year is counted
+sliced_3d_array = sliced_3d_array[-22:, :, :]
+
 #calculate median, 5 and 95 percentile
 
 # Calculate median throughout the depth dimension
@@ -362,7 +365,11 @@ for desired_month in range(1, 13):
 
     # Slice the array and reshape to create a 3D array
     sliced_3d_array = Daily_data.reshape(num_slices, rows_per_slice, -1)
+    
+    # Only take the last year by slicing the last 22 slices
+    sliced_3d_array = sliced_3d_array[-22:, :, :]
 
+    
     # Calculate median, 5th and 95th percentile
     median_depth = np.nanmedian(sliced_3d_array, axis=0)
     percentile_5 = np.nanpercentile(sliced_3d_array, 5, axis=0)
@@ -384,7 +391,11 @@ for desired_month in range(1, 13):
     # Append counts to data frames
     count_ones_df[desired_month] = count_ones
     count_twos_df[desired_month] = count_twos
-
+    
+    
+#%% Computing the averages
+avg_ones = np.mean(count_ones_df, axis=1)
+avg_twos = np.mean(count_twos_df, axis=1)
 #%% plotting the occurences
 
 # Generate HLS color palette with 13 colors
@@ -394,6 +405,7 @@ hls_palette = sb.color_palette("hls", 13)
 plt.figure(figsize=(10, 6))
 for client in count_ones_df.columns:
     plt.plot(count_ones_df.index, count_ones_df[client], label=Loads.columns[client-1], color=hls_palette[client-1])
+plt.plot(avg_ones.index, avg_ones, label="Average", color="blue", linewidth=5, alpha=0.5)
 plt.title('Occurrences of Mild Anomalies by Month')
 plt.xlabel('Month')
 plt.ylabel('Occurrences')
@@ -406,6 +418,7 @@ plt.show()
 plt.figure(figsize=(10, 6))
 for i, client in enumerate(count_twos_df.columns):
     plt.plot(count_twos_df.index, count_twos_df[client], label=Loads.columns[client-1], color=hls_palette[client-1])
+plt.plot(avg_twos.index, avg_twos, label="Average", color="blue", linewidth=5, alpha=0.5)
 plt.title('Occurrences of Significant Anomalies by Month')
 plt.xlabel('Month')
 plt.ylabel('Occurrences')
