@@ -227,11 +227,13 @@ relative_slope = []
 
 # Perform linear regression and plot for each column
 for i, column in enumerate(df.columns):
-    if i in [4, 5, 8, 9, 11, 13]: 
-            plt.ylim(6e-13, 3e-12)
-    #if i in [6, 7, 10, 12]: 
-    #if i in [0, 1, 2, 3]:
-            #plt.ylim(0, 7e-15)
+    #if i in [0, 1, 4, 7, 9]: #low-level
+            #plt.ylim(0.00005, 0.0003)
+    #if i in [5, 8, 10, 11, 3]: #medium level
+            #plt.ylim(0.00005, 0.0005)
+    if i in [2, 6,12]:
+        
+            plt.ylim(0.00015, 0.001)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -274,8 +276,8 @@ for i, column in enumerate(df.columns):
             ax.legend()
 
 #plt.ylim(0, 3e-12)
-plt.yscale("log")
-plt.title("All Schools")
+#plt.yscale("log")
+plt.title("High-level consumers")
 # Place legend outside the plot
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.grid(which='both')
@@ -462,9 +464,11 @@ plt.show()
 plt.figure()
 
 for i, column in enumerate(result.columns):
-    #if i in [4, 5, 8, 9, 11, 13]: 
-    #if i in [6, 7, 10, 12]: 
-    #if i in [0, 1, 2, 3]:
+    #if i in [0, 1, 4, 7, 9]: #low-level
+            #plt.ylim(0.00005, 0.0003)
+    if i in [5, 8, 10, 11, 3]: #medium level
+            #plt.ylim(0.00005, 0.0005)
+    #if i in [2, 6,12]:
     
             if column == "S202" or column == "S301":
                 mean = (baseloads[column].tail(365).values)
@@ -475,12 +479,12 @@ for i, column in enumerate(result.columns):
 
             print(f"{column} : {np.max(mean)/np.min(mean)}")
             
-#plt.yscale('log')
+plt.yscale('log')
 
 plt.grid(which="both", alpha=0.5)
 plt.xlabel("Days of the year")
 plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
-plt.title("Lower medium-level consumers - Schools").set_position([0.55, 1])
+plt.title("Medium-level consumers").set_position([0.55, 1])
 plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
 #plt.legend()
 #plt.subplots_adjust(top=2)

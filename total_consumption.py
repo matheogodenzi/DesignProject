@@ -80,7 +80,7 @@ def discriminate_typologies_absolute(Building_dict, LoadCurve_dict, Typo_list):
             simple_id_dict = {k:v for k, v in zip(Complete_IDs,simple_IDs)}
             
             for col_name in load_selected.columns:
-                load_selected[col_name]/=surf_id_dict[col_name]
+                load_selected[col_name]
             
             if i== 0:
                 Typo_loads[typo] = load_selected.copy()
@@ -214,3 +214,53 @@ plt.scatter(range(len(mean_values)), 4*mean_values)
 # Set the x-axis ticks to the list of names
 plt.xticks(range(len(mean_values)), Loads.columns.tolist())
 plt.yscale("log")
+
+#%%
+
+#my_colors = sb.color_palette("Spectral", result.shape[1])
+#my_colors = sb.color_palette("magma", result.shape[1])
+
+#my_colors = sb.color_palette("icefire", result.shape[1])
+#my_colors = sb.color_palette("husl", result.shape[1])
+#my_colors = sb.color_palette("rocket", result.shape[1])
+#my_colors = sb.color_palette("viridis", result.shape[1])
+#my_colors = sb.color_palette("mako", result.shape[1])
+#my_colors = sb.color_palette("flare", result.shape[1])
+#color list 
+#color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple"]
+color = sb.color_palette("husl", 29, 1)
+colori = 0
+#initiating figure
+plt.figure()
+for i, typo in enumerate(Typo_list) : 
+    
+    loads = Typo_all_loads[typo]
+    # Obtain a typical year
+    t_year = f.typical_period(loads,  "year")
+    #obtain typical day 
+    t_day = f.typical_period(t_year, "day")
+    
+
+    
+
+    for j, col in enumerate(t_day.columns):
+        t_day[col].plot(color=color[colori], label=col)
+        colori += 1
+
+plt.yscale("log")
+
+# Manually set x-axis ticks to display only the hour component
+#hours = mdates.HourLocator(interval=365)
+#hours_fmt = mdates.DateFormatter("%H:%M")
+#plt.gca().xaxis.set_major_locator(hours)
+#plt.gca().xaxis.set_major_formatter(hours_fmt)
+tick_labels = ["0"+str(i)+":00" if i < 10 else str(i)+":00" for i in range(0, 24, 2)]
+tick_positions = [i*8 for i in range(12)]
+plt.xticks(tick_positions, tick_labels, rotation=45)
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Consumers")
+plt.tight_layout(rect=[0, 0, 1, 2.3])
+plt.xlabel("Hours")
+plt.ylabel("Mean daily consumption [$kWh_{el}$]")
+plt.title("Mean daily consumption")
+plt.grid()
+plt.show()
