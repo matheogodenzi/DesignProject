@@ -268,7 +268,7 @@ for i, typo in enumerate(Typo_list) :
         t_day[col].plot(color=color[colori], label=col)
         colori += 1
 
-plt.yscale("log")
+#plt.yscale("log")
 
 # Manually set x-axis ticks to display only the hour component
 #hours = mdates.HourLocator(interval=365)

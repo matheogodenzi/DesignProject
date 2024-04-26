@@ -505,3 +505,47 @@ plt.title("Mean yearly baseload variation")
 plt.xlabel("Consumers IDs")
 plt.ylabel("baseload variation [%]")
 plt.grid(axis='y')
+
+#%% grading for comparison matrix - baseload trend score 
+
+def get_score(typology_names, parameters):
+    min_ = min(parameters)
+    max_= max(parameters)
+    
+    grades = {}
+    classes = {}
+    
+    for i, value in enumerate(parameters):
+        grades[typology_names[i]] = 100*(parameters[i]-min_)/(max_-min_)
+    
+        if grades[typology_names[i]] <= 20 : 
+            classes[typology_names[i]] = 1
+        elif grades[typology_names[i]] <= 40 :
+            classes[typology_names[i]] = 2
+        elif grades[typology_names[i]] <= 60 :
+            classes[typology_names[i]] = 3
+        elif grades[typology_names[i]] <= 80 :
+            classes[typology_names[i]] = 4
+        elif grades[typology_names[i]] <= 100 :
+            classes[typology_names[i]] = 5
+    
+    return grades, classes
+    
+grades, classes = get_score(x, y)
+
+plt.figure()
+for i, (k, v) in enumerate(classes.items()):
+    print(type(v))
+    if v == 1:
+        plt.bar(i,v, color="green")
+    elif v == 2:
+        plt.bar(i,v, color="yellow")
+    elif v == 3:
+        plt.bar(i,v, color="orange")
+    elif v == 4:
+        plt.bar(i,v, color="red" )
+    elif v == 5:
+        plt.bar(i,v, color="purple")
+plt.grid(axis='y')
+plt.xticks(range(len(x)), x)
+plt.show()

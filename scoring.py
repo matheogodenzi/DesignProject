@@ -447,7 +447,7 @@ for i, value in enumerate(avg_twos):
         sign_anomalies_class[schools[i]] = 3
     elif sign_anomalies_grades[schools[i]] <= 80 :
         sign_anomalies_class[schools[i]] = 4
-    elif sign_anomalies_grades[schools[i]] <= 101 :
+    elif sign_anomalies_grades[schools[i]] <= 100 :
         sign_anomalies_class[schools[i]] = 5
 
 plt.figure()
@@ -466,3 +466,94 @@ for i, (k, v) in enumerate(sign_anomalies_class.items()):
 plt.grid(axis='y')
 plt.xticks(range(len(schools)), schools)
 plt.show()
+
+#%% overload peaks comparison 
+
+# Convert the index of the DataFrame to a DatetimeIndex
+Loads_copy = Loads.copy()
+
+Loads_copy.index = pd.to_datetime(Loads_copy.index, format='%d.%m.%Y %H:%M:%S')
+
+# Get the end date of the last year
+end_date_last_year = Loads_copy.index[-1] - pd.DateOffset(years=1)
+
+# Slice the DataFrame to get data from only the last year
+Loads_last_year = Loads_copy[end_date_last_year:]
+
+# Print the shape of the new DataFrame
+print("Shape of the DataFrame for the Last Year:", Loads_last_year.shape)
+#%%
+# Initialize lists to store maximum values and corresponding indexes for each month
+max_values = []
+max_indices = []
+
+# Loop through each month of the last year
+for month in range(1, 13):
+    # Slice the DataFrame for the current month
+    df_month = Loads_last_year[Loads_last_year.index.month == month]
+
+    # Find the maximum value and its index for each column (client)
+    max_values_month = df_month.max()
+    max_indices_month = df_month.idxmax()
+
+    # Append maximum value and its index to the lists
+    max_values.append(max_values_month)
+    max_indices.append(max_indices_month)
+
+# Convert lists to DataFrames
+max_values_df = pd.DataFrame(max_values, index=range(1, 13))
+max_indices_df = pd.DataFrame(max_indices, index=range(1, 13))
+
+# Print the DataFrames
+print("Maximum Values for Each Month:")
+print(max_values_df)
+print("\nCorresponding Indices for Each Month:")
+print(max_indices_df)
+
+plt.plot(max_values_df)
+plt.yscale("log")
+
+#%% grading for comparison matrix - overload score 
+max_values_mean = max_values_df.mean(skipna=True)
+max_values_mean
+
+schools = max_values_df.columns
+min_overlaod = min(max_values_mean.values)
+max_overlaod = max(max_values_mean.values)
+
+schools = month_df.columns.to_list()
+overload_grades = {}
+overload_class = {}
+
+for i, value in enumerate(max_values_mean.values):
+    overload_grades[schools[i]] = 100*(max_values_mean.values[i]-min_overlaod)/(max_overlaod-min_overlaod)
+
+    if overload_grades[schools[i]] <= 20 : 
+        overload_class[schools[i]] = 1
+    elif overload_grades[schools[i]] <= 40 :
+        overload_class[schools[i]] = 2
+    elif overload_grades[schools[i]] <= 60 :
+        overload_class[schools[i]] = 3
+    elif overload_grades[schools[i]] <= 80 :
+        overload_class[schools[i]] = 4
+    elif overload_grades[schools[i]] <= 100 :
+        overload_class[schools[i]] = 5
+
+plt.figure()
+for i, (k, v) in enumerate(overload_class.items()):
+    print(type(v))
+    if v == 1:
+        plt.bar(i,v, color="green")
+    elif v == 2:
+        plt.bar(i,v, color="yellow")
+    elif v == 3:
+        plt.bar(i,v, color="orange")
+    elif v == 4:
+        plt.bar(i,v, color="red" )
+    elif v == 5:
+        plt.bar(i,v, color="purple")
+plt.grid(axis='y')
+plt.xticks(range(len(schools)), schools)
+plt.show()
+#%%
+

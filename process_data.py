@@ -83,7 +83,7 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list):
             simple_id_dict = {k:v for k, v in zip(Complete_IDs,simple_IDs)}
             
             for col_name in load_selected.columns:
-                load_selected /= surf_id_dict[col_name]
+                load_selected[col_name] /= surf_id_dict[col_name]
             
             if i== 0:
                 Typo_loads[typo] = load_selected.copy()
