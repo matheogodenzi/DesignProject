@@ -180,7 +180,7 @@ plt.show()
 # Specify the month you want to extract (e.g., January)
 desired_month = 11
 
-df.index = pd.to_datetime(df.index)
+df.index = pd.to_datetime(df.index, format='%d.%m.%Y %H:%M:%S')
 
 # Extract all instances of the desired month
 month_df = df[df.index.month == desired_month]
@@ -339,7 +339,7 @@ count_twos_df = pd.DataFrame()
 
 # Loop through desired months
 for desired_month in range(1, 13):
-    df.index = pd.to_datetime(df.index)
+    df.index = pd.to_datetime(df.index, format='%d.%m.%Y %H:%M:%S')
 
     # Extract all instances of the desired month
     month_df = df[df.index.month == desired_month]
@@ -426,3 +426,77 @@ plt.xticks(range(1, 13))
 plt.legend()
 plt.grid(True)
 plt.show()
+
+#%% Overload peaks extraction
+
+# Initialize lists to store maximum values and their indices for each client
+max_values = []
+max_indices = []
+
+# Loop through desired months
+for desired_month in range(1, 13):
+    df.index = pd.to_datetime(df.index, format='%d.%m.%Y %H:%M:%S')
+
+    # Extract all instances of the desired month
+    month_df = df[df.index.month == desired_month]
+
+    # Calculate the maximum value and its index for each client (column)
+    max_values_month = month_df.max()  # Maximum values for the current month
+    max_indices_month = month_df.idxmax()  # Indices of the maximum values for the current month
+
+    # Append the maximum values and their indices to the respective lists
+    max_values.append(max_values_month)
+    max_indices.append(max_indices_month)
+
+# Print the maximum values and their indices for each client
+for month, max_values_month, max_indices_month in zip(range(1, 13), max_values, max_indices):
+    print(f"Month {month}:")
+    print("Maximum values:")
+    print(max_values_month)
+    print("Indices of maximum values:")
+    print(max_indices_month)
+    print()
+
+
+#%% Homemade try
+
+# Convert the index of the DataFrame to a DatetimeIndex
+Loads_copy = Loads.copy()
+
+Loads_copy.index = pd.to_datetime(Loads_copy.index, format='%d.%m.%Y %H:%M:%S')
+
+# Get the end date of the last year
+end_date_last_year = Loads_copy.index[-1] - pd.DateOffset(years=1)
+
+# Slice the DataFrame to get data from only the last year
+Loads_last_year = Loads_copy[end_date_last_year:]
+
+# Print the shape of the new DataFrame
+print("Shape of the DataFrame for the Last Year:", Loads_last_year.shape)
+#%%
+# Initialize lists to store maximum values and corresponding indexes for each month
+max_values = []
+max_indices = []
+
+# Loop through each month of the last year
+for month in range(1, 13):
+    # Slice the DataFrame for the current month
+    df_month = Loads_last_year[Loads_last_year.index.month == month]
+
+    # Find the maximum value and its index for each column (client)
+    max_values_month = df_month.max()
+    max_indices_month = df_month.idxmax()
+
+    # Append maximum value and its index to the lists
+    max_values.append(max_values_month)
+    max_indices.append(max_indices_month)
+
+# Convert lists to DataFrames
+max_values_df = pd.DataFrame(max_values, index=range(1, 13))
+max_indices_df = pd.DataFrame(max_indices, index=range(1, 13))
+
+# Print the DataFrames
+print("Maximum Values for Each Month:")
+print(max_values_df)
+print("\nCorresponding Indices for Each Month:")
+print(max_indices_df)
