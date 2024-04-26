@@ -525,6 +525,10 @@ schools = month_df.columns.to_list()
 overload_grades = {}
 overload_class = {}
 
+grades, classes, thresholds = f.get_score(schools, max_values_mean)
+
+#%%
+
 for i, value in enumerate(max_values_mean.values):
     overload_grades[schools[i]] = 100*(max_values_mean.values[i]-min_overlaod)/(max_overlaod-min_overlaod)
 
@@ -556,4 +560,5 @@ plt.grid(axis='y')
 plt.xticks(range(len(schools)), schools)
 plt.show()
 #%%
+
 

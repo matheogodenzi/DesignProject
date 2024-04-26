@@ -78,7 +78,8 @@ def discriminate_typologies_absolute(Building_dict, LoadCurve_dict, Typo_list):
             surf_id_dict = {k: v for k, v in zip(Complete_IDs, surface_list)}
             address_id_dict = {k: v for k, v in zip(Complete_IDs, address_list)}
             simple_id_dict = {k:v for k, v in zip(Complete_IDs,simple_IDs)}
-            
+            simple_id_address_dict = {k:v for k, v in zip(simple_IDs, address_list)}
+            print(simple_id_address_dict)
             for col_name in load_selected.columns:
                 load_selected[col_name]
             
@@ -95,7 +96,7 @@ def discriminate_typologies_absolute(Building_dict, LoadCurve_dict, Typo_list):
             #renaiming columns with simple IDs to conserve anonimity 
             Typo_loads[typo].rename(columns=simple_id_dict, inplace=True)
       
-    return Typo_loads
+    return Typo_loads, simple_id_address_dict
 
 
 
@@ -182,10 +183,10 @@ print(pv_2022_dict)
 Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
 print(type(Building_dict_2023), type(LoadCurve_2022_dict), type(Typo_list))
 #getting typologies from 2022
-Typo_loads_2022 = discriminate_typologies_absolute(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
+Typo_loads_2022, _ = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
 
 #getting typologies from 2023
-Typo_loads_2023 = discriminate_typologies_absolute(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
+Typo_loads_2023, Correspondance = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
 
 # creating overall dictionnary
 Typo_all_loads = {}
@@ -193,6 +194,10 @@ for typo in Typo_list:
     Typo_all_loads[typo] = pd.concat([Typo_loads_2022[typo], Typo_loads_2023[typo]], axis=0)
     
 #print(Typo_loads)
+
+
+
+
 
 #%%
 # parameters to change
@@ -210,10 +215,68 @@ df_nan = Loads.replace(0, np.nan)
 mean_values = df_nan.mean()
 
 
-plt.scatter(range(len(mean_values)), 4*mean_values)
+plt.bar(range(len(mean_values)), 4*mean_values, color=sb.color_palette("hls", 13)[8])
 # Set the x-axis ticks to the list of names
 plt.xticks(range(len(mean_values)), Loads.columns.tolist())
-plt.yscale("log")
+#plt.yscale("log")
+plt.ylabel("load [$kW_{el}/m^2$]")
+plt.xlabel("Consumers' IDs")
+plt.title("Overall average load per meter squared")
+plt.grid(axis="y")
+
+#%% grading for comparison matrix - overload score 
+
+x = Loads.columns
+y = 4*mean_values
+
+def get_score(typology_names, parameters):
+    min_ = min(parameters)
+    max_= max(parameters)
+    
+    grades = {}
+    classes = {}
+    
+    for i, value in enumerate(parameters):
+        grades[typology_names[i]] = 100*(parameters[i]-min_)/(max_-min_)
+    
+        if grades[typology_names[i]] <= 20 : 
+            classes[typology_names[i]] = 1
+        elif grades[typology_names[i]] <= 40 :
+            classes[typology_names[i]] = 2
+        elif grades[typology_names[i]] <= 60 :
+            classes[typology_names[i]] = 3
+        elif grades[typology_names[i]] <= 80 :
+            classes[typology_names[i]] = 4
+        elif grades[typology_names[i]] <= 100 :
+            classes[typology_names[i]] = 5
+    
+    thresholds = [v/100*(max_-min_) + min_ for v in [0, 20, 40, 60, 80 , 100]]
+
+
+    
+    return grades, classes, thresholds 
+
+grades, classes, thresholds = get_score(x, y)
+
+plt.figure()
+for i, (k, v) in enumerate(classes.items()):
+    print(type(v))
+    if v == 1:
+        plt.bar(i,v, color="green")
+    elif v == 2:
+        plt.bar(i,v, color="yellow")
+    elif v == 3:
+        plt.bar(i,v, color="orange")
+    elif v == 4:
+        plt.bar(i,v, color="red" )
+    elif v == 5:
+        plt.bar(i,v, color="purple")
+plt.grid(axis='y')
+plt.xticks(range(len(x)), x)
+plt.show()
+#%% threshold calculation : 
+    
+
 
 #%%
 
@@ -264,3 +327,4 @@ plt.ylabel("Mean daily consumption [$kWh_{el}$]")
 plt.title("Mean daily consumption")
 plt.grid()
 plt.show()
+

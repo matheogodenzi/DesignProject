@@ -227,13 +227,13 @@ relative_slope = []
 
 # Perform linear regression and plot for each column
 for i, column in enumerate(df.columns):
-    #if i in [0, 1, 4, 7, 9]: #low-level
-            #plt.ylim(0.00005, 0.0003)
+    if i in [0, 1, 4, 7, 9]: #low-level
+            plt.ylim(0.0002, 0.0012)
     #if i in [5, 8, 10, 11, 3]: #medium level
-            #plt.ylim(0.00005, 0.0005)
-    if i in [2, 6,12]:
+            #plt.ylim(0.0002, 0.002)
+    #if i in [2, 6,12]:
         
-            plt.ylim(0.00015, 0.001)
+            #plt.ylim(0.0005, 0.004)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -245,7 +245,7 @@ for i, column in enumerate(df.columns):
     
             X = np.array(infra.index).reshape(-1, 1)   # Independent variable
             #print(X)
-            y = infra.values.reshape(-1, 1)              # Dependent variable
+            y = 4*infra.values.reshape(-1, 1)              # Dependent variable
             
             # Plot data points
             ax.scatter(X, y, color=palette[i], alpha=0.3, s=10)
@@ -272,12 +272,12 @@ for i, column in enumerate(df.columns):
             # Set labels and title
             ax.set_title(f'{column}')
             ax.set_xlabel('Days')
-            ax.set_ylabel('Baseload [$kWh_{el}/m^2$]')
+            ax.set_ylabel('Baseload [$kW_{el}/m^2$]')
             ax.legend()
 
 #plt.ylim(0, 3e-12)
 #plt.yscale("log")
-plt.title("High-level consumers")
+plt.title("Low-level consumers")
 # Place legend outside the plot
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.grid(which='both')
@@ -464,27 +464,27 @@ plt.show()
 plt.figure()
 
 for i, column in enumerate(result.columns):
-    #if i in [0, 1, 4, 7, 9]: #low-level
+    if i in [0, 1, 4, 7, 9]: #low-level
             #plt.ylim(0.00005, 0.0003)
-    if i in [5, 8, 10, 11, 3]: #medium level
+    #if i in [5, 8, 10, 11, 3]: #medium level
             #plt.ylim(0.00005, 0.0005)
     #if i in [2, 6,12]:
     
             if column == "S202" or column == "S301":
-                mean = (baseloads[column].tail(365).values)
+                mean = 4*(baseloads[column].tail(365).values)
                 plt.plot(mean, color=my_colors[i], label=column)
             else : 
-                mean = (baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
+                mean = 4*(baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
                 plt.plot(mean, color=my_colors[i], label=column)
 
             print(f"{column} : {np.max(mean)/np.min(mean)}")
             
-plt.yscale('log')
+#plt.yscale('log')
 
 plt.grid(which="both", alpha=0.5)
 plt.xlabel("Days of the year")
-plt.ylabel("Baseload - [$kWh_{el}/m^2$]")
-plt.title("Medium-level consumers").set_position([0.55, 1])
+plt.ylabel("Baseload - [$kW_{el}/m^2$]")
+plt.title("Low-level consumers").set_position([0.55, 1])
 plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
 #plt.legend()
 #plt.subplots_adjust(top=2)
@@ -500,7 +500,12 @@ x = np.array(["S100", "S101", "S201", "S202", "S301", "S102", "S200", "S300", "S
 # Create a bar plot
 plt.bar(np.arange(len(y)), 100*365*y, color="royalblue")
 
-print(100*365*y)
+yy = 100*365*y
+
+mi = min(yy)
+ma = max(yy)
+
+thresholds = [v/100*(ma-mi)+mi for v in [0, 20, 40, 60, 80, 100]]
 
 # Adding labels under each bar
 plt.xticks(np.arange(len(x)), x)
@@ -512,30 +517,8 @@ plt.grid(axis='y')
 
 #%% grading for comparison matrix - baseload trend score 
 
-def get_score(typology_names, parameters):
-    min_ = min(parameters)
-    max_= max(parameters)
     
-    grades = {}
-    classes = {}
-    
-    for i, value in enumerate(parameters):
-        grades[typology_names[i]] = 100*(parameters[i]-min_)/(max_-min_)
-    
-        if grades[typology_names[i]] <= 20 : 
-            classes[typology_names[i]] = 1
-        elif grades[typology_names[i]] <= 40 :
-            classes[typology_names[i]] = 2
-        elif grades[typology_names[i]] <= 60 :
-            classes[typology_names[i]] = 3
-        elif grades[typology_names[i]] <= 80 :
-            classes[typology_names[i]] = 4
-        elif grades[typology_names[i]] <= 100 :
-            classes[typology_names[i]] = 5
-    
-    return grades, classes
-    
-grades, classes = get_score(x, y)
+grades, classes, thresolds = f.get_score(x, y)
 
 plt.figure()
 for i, (k, v) in enumerate(classes.items()):

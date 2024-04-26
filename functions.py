@@ -484,6 +484,33 @@ def get_baseload_2(df):
     return result
 
 
+def get_score(typology_names, parameters):
+    min_ = min(parameters)
+    max_= max(parameters)
+    
+    grades = {}
+    classes = {}
+    
+    for i, value in enumerate(parameters):
+        grades[typology_names[i]] = 100*(parameters[i]-min_)/(max_-min_)
+    
+        if grades[typology_names[i]] <= 20 : 
+            classes[typology_names[i]] = 1
+        elif grades[typology_names[i]] <= 40 :
+            classes[typology_names[i]] = 2
+        elif grades[typology_names[i]] <= 60 :
+            classes[typology_names[i]] = 3
+        elif grades[typology_names[i]] <= 80 :
+            classes[typology_names[i]] = 4
+        elif grades[typology_names[i]] <= 100 :
+            classes[typology_names[i]] = 5
+    
+    thresholds = [v/100*(max_-min_) + min_ for v in [0, 20, 40, 60, 80 , 100]]
+
+
+    
+    return grades, classes, thresholds 
+
 
 
 
