@@ -119,7 +119,10 @@ for typo in Typo_list:
 #print(Typo_loads)
 
 
+Typology = "Ecole"
+Loads = Typo_all_loads[Typology]
 
+df = Loads.astype(np.longdouble)
 
 #%%
 
@@ -178,7 +181,7 @@ plt.show()
 #%%
 
 # Specify the month you want to extract (e.g., January)
-desired_month = 11
+desired_month = 5
 
 df.index = pd.to_datetime(df.index, format='%d.%m.%Y %H:%M:%S')
 
@@ -332,10 +335,14 @@ count_ones, count_twos = count_occurrences(peak_anomaly_test)
 
 
 #%%Counting occurencies for all months
+Typology = "Ecole"
+Loads = Typo_all_loads[Typology]
+
+df = Loads.astype(np.longdouble)
 
 # Initialize empty data frames to store results
-count_ones_df = pd.DataFrame()
-count_twos_df = pd.DataFrame()
+count_ones_df = pd.DataFrame(columns=range(1, 13))  # Months as columns
+count_twos_df = pd.DataFrame(columns=range(1, 13))  # Months as columns
 
 # Loop through desired months
 for desired_month in range(1, 13):
@@ -392,10 +399,11 @@ for desired_month in range(1, 13):
     count_ones_df[desired_month] = count_ones
     count_twos_df[desired_month] = count_twos
     
-    
+count_ones_dfT = count_ones_df.T
+count_twos_dfT = count_twos_df.T     
 #%% Computing the averages
-avg_ones = np.mean(count_ones_df, axis=1)
-avg_twos = np.mean(count_twos_df, axis=1)
+avg_ones = np.mean(count_ones_dfT, axis=1)
+avg_twos = np.mean(count_twos_dfT, axis=1)
 #%% plotting the occurences
 
 # Generate HLS color palette with 13 colors
@@ -403,27 +411,27 @@ hls_palette = sb.color_palette("hls", 13)
 
 # Plot count_ones_df
 plt.figure(figsize=(10, 6))
-for client in count_ones_df.columns:
-    plt.plot(count_ones_df.index, count_ones_df[client], label=Loads.columns[client-1], color=hls_palette[client-1])
+for client in count_ones_dfT.columns:
+    plt.plot(count_ones_dfT.index, count_ones_dfT[client], label=Loads.columns[client-1], color=hls_palette[client-1])
 plt.plot(avg_ones.index, avg_ones, label="Average", color="blue", linewidth=5, alpha=0.5)
 plt.title('Occurrences of Mild Anomalies by Month')
 plt.xlabel('Month')
 plt.ylabel('Occurrences')
 plt.xticks(range(1, 13))
-plt.legend(loc='center left', bbox_to_anchor=(0, 0.295))
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.4))
 plt.grid(True)
 plt.show()
 
 # Plot count_twos_df
 plt.figure(figsize=(10, 6))
-for i, client in enumerate(count_twos_df.columns):
-    plt.plot(count_twos_df.index, count_twos_df[client], label=Loads.columns[client-1], color=hls_palette[client-1])
+for i, client in enumerate(count_twos_dfT.columns):
+    plt.plot(count_twos_dfT.index, count_twos_dfT[client], label=Loads.columns[client-1], color=hls_palette[client-1])
 plt.plot(avg_twos.index, avg_twos, label="Average", color="blue", linewidth=5, alpha=0.5)
 plt.title('Occurrences of Significant Anomalies by Month')
 plt.xlabel('Month')
 plt.ylabel('Occurrences')
 plt.xticks(range(1, 13))
-plt.legend()
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.4))
 plt.grid(True)
 plt.show()
 
@@ -471,9 +479,8 @@ end_date_last_year = Loads_copy.index[-1] - pd.DateOffset(years=1)
 # Slice the DataFrame to get data from only the last year
 Loads_last_year = Loads_copy[end_date_last_year:]
 
-# Print the shape of the new DataFrame
-print("Shape of the DataFrame for the Last Year:", Loads_last_year.shape)
-#%%
+
+
 # Initialize lists to store maximum values and corresponding indexes for each month
 max_values = []
 max_indices = []
@@ -495,8 +502,37 @@ for month in range(1, 13):
 max_values_df = pd.DataFrame(max_values, index=range(1, 13))
 max_indices_df = pd.DataFrame(max_indices, index=range(1, 13))
 
+# Set the columns of the new DataFrames to be the same as the columns of Loads_last_year
+#max_values_df.columns = Loads_last_year.columns
+#max_indices_df.columns = Loads_last_year.columns
+
+# Set the columns of the new DataFrames to be numerical
+max_values_df.columns = range(1, len(Loads_last_year.columns) + 1)
+max_indices_df.columns = range(1, len(Loads_last_year.columns) + 1)
+
+
 # Print the DataFrames
 print("Maximum Values for Each Month:")
 print(max_values_df)
 print("\nCorresponding Indices for Each Month:")
 print(max_indices_df)
+
+
+
+#%%
+max_values_df[max_values_df == 0] = np.nan
+
+# Generate HLS color palette with 13 colors
+hls_palette = sb.color_palette("hls", 13)
+
+# Plot max_values_df
+plt.figure(figsize=(10, 6))
+for client in max_values_df.columns:
+    plt.semilogy(max_values_df.index, max_values_df[client], label=Loads_last_year.columns[client-1], color=hls_palette[client-1])
+plt.title('Maximum Values for Each Month by Client')
+plt.xlabel('Month')
+plt.ylabel('Maximum Load [$kWh_{el}/m^2$]')
+plt.xticks(range(1, 13))
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+plt.grid(True)
+plt.show()
