@@ -479,9 +479,8 @@ end_date_last_year = Loads_copy.index[-1] - pd.DateOffset(years=1)
 # Slice the DataFrame to get data from only the last year
 Loads_last_year = Loads_copy[end_date_last_year:]
 
-# Print the shape of the new DataFrame
-print("Shape of the DataFrame for the Last Year:", Loads_last_year.shape)
-#%%
+
+
 # Initialize lists to store maximum values and corresponding indexes for each month
 max_values = []
 max_indices = []
@@ -518,7 +517,10 @@ print(max_values_df)
 print("\nCorresponding Indices for Each Month:")
 print(max_indices_df)
 
+
+
 #%%
+max_values_df[max_values_df == 0] = np.nan
 
 # Generate HLS color palette with 13 colors
 hls_palette = sb.color_palette("hls", 13)
@@ -526,10 +528,10 @@ hls_palette = sb.color_palette("hls", 13)
 # Plot max_values_df
 plt.figure(figsize=(10, 6))
 for client in max_values_df.columns:
-    plt.plot(max_values_df.index, max_values_df[client], label=Loads_last_year.columns[client-1], color=hls_palette[client-1])
+    plt.semilogy(max_values_df.index, max_values_df[client], label=Loads_last_year.columns[client-1], color=hls_palette[client-1])
 plt.title('Maximum Values for Each Month by Client')
 plt.xlabel('Month')
-plt.ylabel('Maximum Value')
+plt.ylabel('Maximum Load [$kWh_{el}/m^2$]')
 plt.xticks(range(1, 13))
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 plt.grid(True)
