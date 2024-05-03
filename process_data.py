@@ -123,8 +123,7 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list, normalizat
 
 
 def get_load_curves(total_cons=False):
-    
-
+    #True> total load, if False > only SIE load (without PV)
 
     """
     
@@ -226,7 +225,30 @@ def get_load_curves(total_cons=False):
 
 
 def sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, normalization=True):
+    # if True > normalized load, if False > absolute load 
+    # uses discriminate_typology() to return fully sorted dataframes 
+    
+    """
+    
 
+    Parameters
+    ----------
+    LoadCurve_2023_dict : TYPE
+        DESCRIPTION.
+    LoadCurve_2022_dict : TYPE
+        DESCRIPTION.
+    Building_dict_2023 : TYPE
+        DESCRIPTION.
+    pv_2022_dict : TYPE
+        DESCRIPTION.
+    normalization : TYPE, optional
+        DESCRIPTION. The default is True.
+
+    Returns
+    -------
+    None.
+
+    """
     Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
     print(type(Building_dict_2023), type(LoadCurve_2022_dict), type(Typo_list))
     #getting typologies from 2022
