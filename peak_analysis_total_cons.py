@@ -19,7 +19,7 @@ import functions as f
 import controls as c
 import auto_analysis as aa
 import process_data as p
-
+import total_consumption as tc
 
 """data acquisition"""
 
@@ -106,10 +106,10 @@ print(pv_2022_dict)
 Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
 print(type(Building_dict_2023), type(LoadCurve_2022_dict), type(Typo_list))
 #getting typologies from 2022
-Typo_loads_2022 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
+Typo_loads_2022 = tc.discriminate_typologies_absolute(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
 
 #getting typologies from 2023
-Typo_loads_2023 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
+Typo_loads_2023 = tc.discriminate_typologies_absolute(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
 
 # creating overall dictionnary
 Typo_all_loads = {}
@@ -404,51 +404,6 @@ count_twos_dfT = count_twos_df.T
 
 count_ones_dfT[count_ones_dfT == 0] = np.nan    
 count_twos_dfT[count_twos_dfT == 0] = np.nan
-
-#%% sum of mild and significant anomalies for each customer
-total_mild_occurences = count_ones_dfT.sum(axis=0)
-total_sign_occurences = count_twos_dfT.sum(axis=0)
-
-# Generate HLS color palette with 13 colors
-hls_palette = sb.color_palette("hls", 13)
-#categories = list(total_mild_occurences.keys())
-#values = list(total_mild_occurences.values())
-
-# Plotting the bar plot
-plt.bar(Loads.columns, total_mild_occurences, color=hls_palette[8])
-
-# Adding labels and title
-plt.xlabel('Consumers')
-plt.ylabel('Occurences')
-plt.title('Occurences of mild anomalies')
-
-# Rotating x-axis labels for better readability (optional)
-plt.xticks(rotation=45)
-
-# Displaying the plot
-plt.show()
-
-#%% sum of mild and significant anomalies for each customer
-total_mild_occurences = count_ones_dfT.sum(axis=0)
-total_sign_occurences = count_twos_dfT.sum(axis=0)
-
-#categories = list(total_mild_occurences.keys())
-#values = list(total_mild_occurences.values())
-
-# Plotting the bar plot
-plt.bar(Loads.columns, total_sign_occurences, color=hls_palette[8])
-
-# Adding labels and title
-plt.xlabel('Consumers')
-plt.ylabel('Occurences')
-plt.title('Occurences of significant anomalies')
-
-# Rotating x-axis labels for better readability (optional)
-plt.xticks(rotation=45)
-
-# Displaying the plot
-plt.show()
-
 #%% Computing the averages
 avg_ones = np.nanmean(count_ones_dfT, axis=1)
 avg_twos = np.nanmean(count_twos_dfT, axis=1)
@@ -569,7 +524,6 @@ print(max_indices_df)
 
 #%%
 max_values_df[max_values_df == 0] = np.nan
-
 max_values_dfkW = max_values_df * 4
 avg_maxvalues = np.nanmean(max_values_dfkW, axis=1)
 # Generate HLS color palette with 13 colors
@@ -577,16 +531,17 @@ hls_palette = sb.color_palette("hls", 13)
 
 # Plot max_values_df
 plt.figure(figsize=(10, 6))
-for client in max_values_df.columns:
+for client in max_values_dfkW.columns:
     plt.plot(max_values_dfkW.index, max_values_dfkW[client], label=Loads_last_year.columns[client-1], color=hls_palette[client-1])
 plt.plot(max_values_dfkW.index, avg_maxvalues, label="Average", color="blue", linewidth=5, alpha=0.5)
 plt.title('Maximum Values for Each Month by Client')
 plt.xlabel('Month')
-plt.ylabel('Maximum Load [$kW_{el}/m^2$]')
+plt.ylabel('Maximum Load [$kW_{el}$]')
 plt.xticks(range(1, 13))
 plt.legend(title="Consumers", loc='center left', bbox_to_anchor=(1, 0.5))
 plt.grid(True)
 plt.show()
+
 
 #%%  sum of max_load for each customer
 total_max_values = max_values_dfkW.sum(axis=0)
@@ -600,7 +555,7 @@ plt.bar(Loads.columns, total_max_values, color=hls_palette[8])
 
 # Adding labels and title
 plt.xlabel('Consumers')
-plt.ylabel('Sum of maximal loads [$kW_{el}/m^2$]')
+plt.ylabel('Sum of maximal loads [$kW_{el}$]')
 plt.title('Total power of monthly maximal loads')
 
 # Rotating x-axis labels for better readability (optional)
