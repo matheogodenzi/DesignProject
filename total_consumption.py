@@ -29,37 +29,9 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
-
-#%%
-# parameters to change
-Typology = "Ecole"
-Period = "day"
-
-# smoothing calculations
-Loads = Typo_all_loads[Typology]
-
-# Assuming df is your DataFrame
-# Replace zeros with NaN values
-df_nan = Loads.replace(0, np.nan)
-
-# Calculate the mean over columns
-mean_values = df_nan.mean()
-
-
-plt.bar(range(len(mean_values)), 4*mean_values, color=sb.color_palette("hls", 13)[8])
-# Set the x-axis ticks to the list of names
-plt.xticks(range(len(mean_values)), Loads.columns.tolist(), rotation=45)
-#plt.yscale("log")
-plt.ylabel("load [$kW_{el}/m^2$]")
-plt.xlabel("Consumers' IDs")
-plt.title("Overall average load per meter squared")
-plt.grid(axis="y")
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
 
 #%% grading for comparison matrix - overload score 
-
-x = Loads.columns
-y = 4*mean_values
 
 def get_score(typology_names, parameters):
     min_ = min(parameters)
@@ -79,7 +51,7 @@ def get_score(typology_names, parameters):
             classes[typology_names[i]] = 3
         elif grades[typology_names[i]] <= 80 :
             classes[typology_names[i]] = 4
-        elif grades[typology_names[i]] <= 100 :
+        elif grades[typology_names[i]] <= 101 :
             classes[typology_names[i]] = 5
     
     thresholds = [v/100*(max_-min_) + min_ for v in [0, 20, 40, 60, 80 , 100]]
@@ -88,61 +60,11 @@ def get_score(typology_names, parameters):
     
     return grades, classes, thresholds 
 
-grades, classes, thresholds = get_score(x, y)
-
-plt.figure()
-for i, (k, v) in enumerate(classes.items()):
-    print(type(v))
-    if v == 1:
-        plt.bar(i,v, color="green")
-    elif v == 2:
-        plt.bar(i,v, color="yellow")
-    elif v == 3:
-        plt.bar(i,v, color="orange")
-    elif v == 4:
-        plt.bar(i,v, color="red" )
-    elif v == 5:
-        plt.bar(i,v, color="purple")
-plt.grid(axis='y')
-plt.xticks(range(len(x)), x)
-plt.show()
-
-#%% calculating mean and standard deviation for a typical day the year 
-
-
-# parameters to change
-Typology = "Ecole"
-Period = "day"
-
-# smoothing calculations
-Loads = Typo_all_loads[Typology]
-Tendency = f.period_tendencies(Loads, Period)
-
-
-#extracting 1 single load to compare with the benchmark and giving it the same smoothness 
-single_load = Typo_all_loads[Typology].iloc[:, 0].to_frame()
-#print(single_load)
-smoothed_load = f.period_tendencies(single_load, Period)
-
-
-# plotting 
-updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
-
-
-#%% creating a benchmark over available years
-
-# Obtain a typical year averaged
-typical_year = f.typical_period(Loads,  "year")
-
-
-Loads_2022 = Typo_loads_2022[Typology]
-Loads_2023 = Typo_loads_2023[Typology]
-
 
 #%%
-def get_load(df):
+def get_mean_load_kW(df):
     """
-    Delineate annual tendencies over days, weeks, and months
+    Delineate annual tendencies over days, weeks, and months and returns mean load in kW
 
     Parameters
     ----------
@@ -159,12 +81,13 @@ def get_load(df):
     averages = []
 
     # Iterate over the DataFrame in chunks of 96 rows
+    #if you want it per week you multiply the chunk_size by seven otherwise you keep 96 values per day
     chunk_size = 96
     for i in range(0, num_rows, chunk_size):
         chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
-        
+        chunk_kW = 4*chunk
         # Calculate the mean of the smallest values for each column
-        average_of_smallest = chunk.mean()
+        average_of_smallest = chunk_kW.mean()
         
         averages.append(average_of_smallest)  # Append the averages to the list
     
@@ -174,7 +97,7 @@ def get_load(df):
     return result
 
 
-#%%
+#%% creating a benchmark over available years
 
 # parameters to change
 Typology = "Ecole"
@@ -182,64 +105,76 @@ Period = "day"
 
 # smoothing calculations
 Loads = Typo_all_loads[Typology]
+
 # Obtain a typical year averaged
-Loads = f.typical_period(Loads,  "year")
+typical_year = f.typical_period(Loads,  "year")
 
-# Assuming df is your DataFrame
+
+Loads_2022 = Typo_loads_2022[Typology]
+Loads_2023 = Typo_loads_2023[Typology]
+
 # Replace zeros with NaN values
-df_nan = Loads.replace(0, np.nan)
+"""If you want to have both years instead of their average, change typical_year by Loads"""
+df_nan = typical_year.replace(0, np.nan)
 
-Daily_average_load = 4*get_load(df_nan)
+Daily_average_load = get_mean_load_kW(df_nan)
 
 my_colors = sb.color_palette("hls", Daily_average_load.shape[1])
 
 plt.figure()
 
 for i in range(Daily_average_load.shape[1]):
-    plt.plot(Daily_average_load.iloc[:,i], c=my_colors[i])
+    #if i in [0, 3, 7, 11]:
+    #if i in [1, 4, 8, 12]:
+    #if i in [2, 5, 6, 9, 10]:
+    #if i in [6,12]:
+        plt.plot(Daily_average_load.iloc[:,i], c=my_colors[i], label=Daily_average_load.columns[i])
+plt.plot(Daily_average_load.mean(1), color="royalblue", label="Profil moyen", linewidth=7, alpha=0.5)
 #plt.yscale("log")
 plt.grid()
-plt.legend(Daily_average_load.columns, bbox_to_anchor=(1.05, 1), loc='upper left', title="Consumers")
-plt.title("Annual consumption, weekly basis - schools")
-plt.xlabel("Weeks of the year")
-plt.ylabel("Average load [$KW_{el}/m^2$]")
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
+plt.title("Consommation habdomadaire à travers l'année - écoles")
+plt.xlabel("Semaines de l'année")
+plt.ylabel("Charge moyenne [$KW_{el}/m^2$]")
 plt.show()
 
-#%% boxplot conso journalière sur une année
+#%% boxplot conso journalière moyenne sur une année
 
-df = 4*df_nan
+df = Daily_average_load
+
+# Calculate mean for each column
+means = df.mean()
+
+# Plot boxplot
 plt.figure()
-Daily_average_load.boxplot()
-plt.xticks(rotation=45)
-plt.xlabel("Consumers IDs")
-plt.ylabel("Median load [$kW_{el}/m^2$]")
-plt.title("Annual daily load distribution - Schools")
+boxplot = df.boxplot()
+plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
+plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
+plt.xlabel("Identifiants des consommateurs")
+plt.ylabel("Charge [$kW_{el}$]")
+plt.title("Distribution annuelle de la charge journalière - Ecoles")
 plt.grid(axis="x")
+
+# Extracting the boxplot elements for creating legend
+boxes = [item for item in boxplot.findobj(match=plt.Line2D)][::6]  # boxes
+medians = [item for item in boxplot.findobj(match=plt.Line2D)][5::6]  # medians
+whiskers = [item for item in boxplot.findobj(match=plt.Line2D)][2::6]  # whiskers
+caps = [item for item in boxplot.findobj(match=plt.Line2D)][3::6]  # caps
+
+# Create legend with labels
+plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', linestyle='None')], 
+           [ 'Mediane', 'Bornes', 'Moyenne'])
+
 plt.show()
 
-
-#%% average load tendency 
-
-two_years_load = Typo_all_loads[Typology]
-
-# Assuming df is your DataFrame
-# Replace zeros with NaN values
-df_nan = two_years_load.replace(0, np.nan)
-
-Daily_average_load = 4*get_load(df_nan)
-
-plt.figure()
-for i in range(Daily_average_load.shape[1]):
-    plt.scatter(Daily_average_load.index.to_list(), Daily_average_load.iloc[:,i].values, s=5, alpha=0.3)
-plt.show()
-
-#%%
-
-plt.plot(Daily_average_load)
-plt.show()
 
 #%% Linear regressions 
 
+# Replace zeros with NaN values
+"""If you want to have both years instead of their average, change typical_year by Loads"""
+df_nan = Loads.replace(0, np.nan)
+
+Daily_average_load = get_mean_load_kW(df_nan)
 
 df  = Daily_average_load
 
@@ -299,15 +234,127 @@ for i, column in enumerate(df.columns):
             relative_slope.append(coefficients[0][0]/y_reg[0][0])
             # Set labels and title
             ax.set_title(f'{column}')
-            ax.set_xlabel('Days')
-            ax.set_ylabel('Average load [$kW_{el}/m^2$]')
+            ax.set_xlabel('Jours')
+            ax.set_ylabel('Charge moyenne [$kW_{el}/m^2$]')
             ax.legend()
 
 #plt.ylim(0, 3e-12)
 #plt.yscale("log")
-plt.title("All Schools")
+plt.title("Profile d'évolution de la consommation - écoles")
 # Place legend outside the plot
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.legend(title="Etablissements", bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.grid(which='both')
-plt.tight_layout()
+#plt.tight_layout()
 plt.show()
+
+coef_df.index = df.columns
+
+#%% plotting scores 
+
+#y for trends 
+#y = np.array(relative_slope)*100*365
+
+#y for mean values 
+
+df_nan = typical_year.replace(0, np.nan)
+Daily_average_load = get_mean_load_kW(df_nan)
+Dailymeans = Daily_average_load.mean()
+
+y = Dailymeans.values
+print(y)
+x= coef_df.index
+
+grades, classes, thresholds = get_score(x, y)
+print("*******************")
+print(classes)
+print("*******************")
+print(grades)
+print("*******************")
+print(thresholds)
+print("*******************")
+plt.figure()
+plt.bar(x,y)
+plt.show()
+
+plt.figure()
+for i, (k, v) in enumerate(classes.items()):
+    if v == 1:
+        plt.bar(i,v, color="green")
+    elif v == 2:
+        plt.bar(i,v, color="yellow")
+    elif v == 3:
+        plt.bar(i,v, color="orange")
+    elif v == 4:
+        plt.bar(i,v, color="red" )
+    elif v == 5:
+        plt.bar(i,v, color="purple")
+    else:
+        plt.bar(i, v, color="blue")
+plt.grid(axis='y')
+plt.xticks(range(len(x)), x)
+plt.show()
+#%% Previous code 
+"""
+# parameters to change
+Typology = "Ecole"
+Period = "day"
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+
+# Assuming df is your DataFrame
+# Replace zeros with NaN values
+df_nan = Loads.replace(0, np.nan)
+
+# Calculate the mean over columns
+mean_values = df_nan.mean()
+
+
+plt.bar(range(len(mean_values)), 4*mean_values, color=sb.color_palette("hls", 13)[8])
+# Set the x-axis ticks to the list of names
+plt.xticks(range(len(mean_values)), Loads.columns.tolist(), rotation=45)
+#plt.yscale("log")
+plt.ylabel("load [$kW_{el}/m^2$]")
+plt.xlabel("Consumers' IDs")
+plt.title("Overall average load per meter squared")
+plt.grid(axis="y")
+"""
+
+#%% calculating mean and standard deviation for a typical day the year 
+"""
+
+# parameters to change
+Typology = "Ecole"
+Period = "week"
+
+# smoothing calculations
+Loads = Typo_all_loads[Typology]
+Tendency = f.period_tendencies(Loads, Period)
+
+
+#extracting 1 single load to compare with the benchmark and giving it the same smoothness 
+single_load = Typo_all_loads[Typology].iloc[:, 0].to_frame()
+#print(single_load)
+smoothed_load = f.period_tendencies(single_load, Period)
+
+
+# plotting 
+updated_tendency = f.plot_mean_load(smoothed_load, Tendency, Period, Typology)
+
+"""
+#%% average load tendency 
+"""
+
+two_years_load = Typo_all_loads[Typology]
+
+# Assuming df is your DataFrame
+# Replace zeros with NaN values
+df_nan = two_years_load.replace(0, np.nan)
+
+Daily_average_load = get_mean_load_kW(df_nan)
+
+plt.figure()
+for i in range(Daily_average_load.shape[1]):
+    plt.scatter(Daily_average_load.index.to_list(), Daily_average_load.iloc[:,i].values, s=5, alpha=0.3)
+plt.show()
+"""
