@@ -107,10 +107,10 @@ print(pv_2022_dict)
 Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Commune2", "Buvette", "Parking"]
 
 #getting typologies from 2022
-Typo_loads_2022, _ = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
+Typo_loads_2022, _ = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list, True)
 
 #getting typologies from 2023
-Typo_loads_2023, _ = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
+Typo_loads_2023, _ = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list, True)
 
 # creating overall dictionnary
 Typo_all_loads = {}
@@ -464,7 +464,7 @@ plt.show()
 plt.figure()
 
 for i, column in enumerate(result.columns):
-    if i in [0, 1, 4, 7, 9]: #low-level
+    #if i in [0, 1, 4, 7, 9]: #low-level
             #plt.ylim(0.00005, 0.0003)
     #if i in [5, 8, 10, 11, 3]: #medium level
             #plt.ylim(0.00005, 0.0005)
