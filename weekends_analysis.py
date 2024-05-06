@@ -28,7 +28,7 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 #%%
 
 def get_mean_load_kW(df):
@@ -115,14 +115,33 @@ plt.title("Distribution annuelle de la charge journalière - Ecoles")
 plt.grid(axis="x")
 #%%
 
-# Assuming your DataFrame is called 'df' and has a datetime index
-# Create a sample DataFrame for demonstration
-date_rng = pd.date_range(start='2024-01-01', end='2024-01-10', freq='D')
-df = pd.DataFrame(date_rng, columns=['date'])
-df['data'] = range(len(df))
-df.set_index('date', inplace=True)
+# Replace zeros with NaN values
+"""If you want to have both years instead of their average, change typical_year by Loads"""
+df_nan = Loads.replace(0, np.nan)
+df_nan.index = pd.to_datetime(df_nan.index, format='%d.%m.%Y %H:%M:%S')
+week_ends_df = df_nan[(df_nan.index.weekday == 0) |(df_nan.index.weekday == 1) |(df_nan.index.weekday == 2) |(df_nan.index.weekday == 3) |(df_nan.index.weekday == 4)]  # 0-4 represent week days respectively
 
-# Extract weekends
-weekends = df[(df.index.weekday == 5) | (df.index.weekday == 6)]  # 5 and 6 represent Saturday and Sunday respectively
+Weekend_day_average_load = get_mean_load_kW(week_ends_df)
 
-print(weekends)
+my_colors = sb.color_palette("hls", Weekend_day_average_load.shape[1])
+
+
+plt.figure()
+for i in range(Weekend_day_average_load.shape[1]):
+    plt.plot(Weekend_day_average_load.iloc[:, i], c= my_colors[i], label=Weekend_day_average_load.columns[i])
+plt.grid()
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
+plt.title("")
+plt.show()
+
+df = Weekend_day_average_load.copy()
+# Plot boxplot
+plt.figure()
+boxplot = df.boxplot()
+#plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
+plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
+plt.xlabel("Identifiants des consommateurs")
+plt.ylabel("Charge [$kW_{el}$]")
+plt.title("Distribution annuelle de la charge journalière - Ecoles")
+plt.grid(axis="x")
+
