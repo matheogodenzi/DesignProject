@@ -6,7 +6,8 @@ Created on Fri May  3 17:02:20 2024
 """
 
 import numpy as np 
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import pandas as pd
 import os
 from scipy.stats import shapiro
@@ -219,6 +220,46 @@ a reduction of that baseload by a given percentage
 """
 
 plt.bar(Loads.columns, baseload_savings)
+#%%
+plt.figure()
+plt.plot(baseloads)
+plt.axhline(y=baseload_avg, color='red', linestyle='--')
+plt.axhline(y=baseload_min_min, color='blue', linestyle='--')
+plt.show()
+
+#%%Baseload savings v2
+#print(df[df.index.duplicated()])
+
+# Remove duplicate indices
+df_no_duplicates = df[~df.index.duplicated(keep='first')]
+
+baseloads = get_baseload_2(df_no_duplicates)
+
+baseloads.replace(0, np.nan, inplace=True)
+
+baseload_min= np.min(baseloads, axis=1)
+
+baseload_avg = np.mean(baseloads, axis=1)
+
+baseload_savings = baseload_min.copy()
+
+# output in kW/m2 of energy savings
+for i, column in enumerate(baseloads.columns):
+    if baseload_min[i] > baseload_avg:
+        # dragging the big consumers towards average value
+        baseload_savings.iloc[] = baseload_min[i] - baseload_avg
+    else:
+        # dragging lower consumers to best in class
+        baseload_savings.iloc[i,:] = baseload_min[i] - baseload_min_min
+    
+"""
+Now we have the baseloads, we want to compute how much savings by
+a reduction of that baseload by a given percentage
+
+"""
+
+plt.bar(Loads.columns, baseload_savings)
+
 
 #%% Peak shaving savings
 
@@ -259,19 +300,34 @@ max_values_dfkW = max_values_df
 
 # peak shaving new values
 df_shaved = df.copy()
-
+factor = 0.8
 
 for i in range(max_values_dfkW.shape[0]):
     
     for j in range(df_shaved[df_shaved.index.month == i + 1].shape[1]):
         condition = (df_shaved.index.month == i + 1) & (df_shaved.iloc[:, j] > 0.9* max_values_dfkW.iloc[i, j])
-        df_shaved.loc[condition, df_shaved.columns[j]] = 0.9 * max_values_dfkW.iloc[i, j]
+        df_shaved.loc[condition, df_shaved.columns[j]] = factor * max_values_dfkW.iloc[i, j]
 
 power_economies= df-df_shaved
 energy_economies = power_economies.mean(0)*365*24 #kWh/an/m2 (si normalisation préalable)
 plt.bar(Loads.columns, energy_economies)
 plt.xticks(rotation=45)
 plt.show()
+#%%
+palette = sb.color_palette("hls", 13)
+
+plt.plot(df['S301'], color=palette[0])
+plt.plot(df_shaved['S301'], color=palette[7])
+plt.legend(["Shaved peaks","Remaining load"])
+# Format x-axis ticks to display only the month
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%W'))
+plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
+
+plt.tick_params(axis='both', which='major', labelsize=9)
+plt.xlabel("Weeks of the year")
+plt.ylabel("Load - [$kW_{el}/m^2$]")
+plt.show()
+
 #%% plotting
 
 # Initialize an empty list to store the energy economies for each factor
