@@ -232,7 +232,6 @@ def filter_and_calculate_std(row):
     filtered_row = row[~outliers_mask]
     return filtered_row.std()
 
-
 def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Typologie", xaxis="specify label"):
     """
     
@@ -349,7 +348,6 @@ def plot_mean_load(Load, Tendency, period="Specify period", Typology="Specify Ty
     
     return Tendency
 
-
 def typical_period(df, period):
     
     day_nbr = int(df.shape[0]/4/24)
@@ -386,10 +384,6 @@ def typical_period(df, period):
     
     return period_df
 
-
-
-
-
 def plot_typical_day(data_day, typology):
     indices_list = data_day.index.tolist()
     
@@ -409,10 +403,6 @@ def plot_typical_day(data_day, typology):
     plt.show()
     
     return
-
-
-
-
 
 def plot_typical_week(data_week, typology):
     indices_list = data_week.index.tolist()
@@ -444,8 +434,6 @@ def plot_typical_week(data_week, typology):
     plt.show()
     
     return
-
-
 
 def get_baseload_2(df):
     """
@@ -483,6 +471,39 @@ def get_baseload_2(df):
     
     return result
 
+def get_mean_load_kW(df):
+    """
+    Delineate annual tendencies over days, weeks, and months and returns mean load in kW
+
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
+
+    Returns
+    -------
+    result : DataFrame
+        DataFrame containing the mean of the 6 smallest values of each column.
+    """
+
+    num_rows = df.shape[0]
+    averages = []
+
+    # Iterate over the DataFrame in chunks of 96 rows
+    #if you want it per week you multiply the chunk_size by seven otherwise you keep 96 values per day
+    chunk_size = 96
+    for i in range(0, num_rows, chunk_size):
+        chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
+        chunk_kW = 4*chunk
+        # Calculate the mean of the smallest values for each column
+        average_of_smallest = chunk_kW.mean()
+        
+        averages.append(average_of_smallest)  # Append the averages to the list
+    
+    # Concatenate the averages into a single DataFrame
+    result = pd.concat(averages, axis=1).T
+    
+    return result
 
 def get_score(typology_names, parameters):
     min_ = min(parameters)
