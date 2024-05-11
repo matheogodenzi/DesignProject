@@ -172,7 +172,7 @@ Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
-Loads = 4* Typo_all_loads[Typology]
+Loads = 4* Typo_all_loads[Typology] #conversion to [kW]
 
 Loads_copy = Loads.copy()
 
@@ -182,7 +182,7 @@ Loads_copy.index = pd.to_datetime(Loads_copy.index, format='%d.%m.%Y %H:%M:%S')
 end_date_last_year = Loads_copy.index[-1] - pd.DateOffset(years=1)
 
 # Slice the DataFrame to get data from only the last year
-Loads_last_year = Loads_copy[end_date_last_year:]
+Loads_last_year = Loads_copy[end_date_last_year:] #[kW]
 
 df = Loads_last_year.astype(np.longdouble)
 
@@ -221,10 +221,16 @@ a reduction of that baseload by a given percentage
 
 plt.bar(Loads.columns, baseload_savings)
 #%%
+my_colors = sb.color_palette("hls", baseloads.shape[1])
 plt.figure()
-plt.plot(baseloads)
-plt.axhline(y=baseload_avg, color='red', linestyle='--')
-plt.axhline(y=baseload_min_min, color='blue', linestyle='--')
+plt.figure()
+for i, column in enumerate(baseloads.columns):
+    plt.plot(baseloads[column], color=my_colors[i])
+plt.axhline(y=baseload_avg, color='red', linestyle='--', label='Average baseload')
+plt.axhline(y=baseload_min_min, color='blue', linestyle='--', label='Minimum baseload')
+plt.ylabel('Load - [$kW_{el}/m^2$]')
+plt.xlabel('Days of the year')
+plt.legend()
 plt.show()
 
 #%%Baseload savings v2
@@ -247,7 +253,7 @@ baseload_savings = baseload_min.copy()
 for i, column in enumerate(baseloads.columns):
     if baseload_min[i] > baseload_avg:
         # dragging the big consumers towards average value
-        baseload_savings.iloc[] = baseload_min[i] - baseload_avg
+        baseload_savings.iloc[i,:] = baseload_min[i] - baseload_avg
     else:
         # dragging lower consumers to best in class
         baseload_savings.iloc[i,:] = baseload_min[i] - baseload_min_min
@@ -300,12 +306,12 @@ max_values_dfkW = max_values_df
 
 # peak shaving new values
 df_shaved = df.copy()
-factor = 0.8
+factor = 0.9
 
 for i in range(max_values_dfkW.shape[0]):
     
     for j in range(df_shaved[df_shaved.index.month == i + 1].shape[1]):
-        condition = (df_shaved.index.month == i + 1) & (df_shaved.iloc[:, j] > 0.9* max_values_dfkW.iloc[i, j])
+        condition = (df_shaved.index.month == i + 1) & (df_shaved.iloc[:, j] > factor* max_values_dfkW.iloc[i, j])
         df_shaved.loc[condition, df_shaved.columns[j]] = factor * max_values_dfkW.iloc[i, j]
 
 power_economies= df-df_shaved
@@ -313,6 +319,24 @@ energy_economies = power_economies.mean(0)*365*24 #kWh/an/m2 (si normalisation p
 plt.bar(Loads.columns, energy_economies)
 plt.xticks(rotation=45)
 plt.show()
+
+#%% Computing cost savings related to the energy savings
+# savings from reducing the monthly maximum load
+save_factor = 1-factor
+max_value_savings = max_values_dfkW * save_factor
+
+## Beware: take non-normalized data
+
+tarif = 12.39 # [ct/kW] TOP B pic mensuel
+
+peak_cost_saving = max_value_savings * tarif * 100 # CHF/mois
+
+# plotting
+
+plt.plot(peak_cost_saving)
+
+
+
 #%%
 palette = sb.color_palette("hls", 13)
 
@@ -334,7 +358,7 @@ plt.show()
 energy_economies_list = []
 
 # Iterate over the factors from 0.9 to 0.4 with 10 intervals
-for factor in np.linspace(0.9, 0.4, 10):
+for factor in np.linspace(1, 0.9, 10):
     # Apply peak shaving with the current factor
     df_shaved = df.copy()  # Reset df_shaved to the original DataFrame
     
@@ -351,17 +375,24 @@ for factor in np.linspace(0.9, 0.4, 10):
     energy_economies_list.append(energy_economies)
 
 #%%
+energy_economies_df = pd.concat(energy_economies_list, axis=1).T
 # Plot the energy economies for each factor
 plt.figure(figsize=(10, 6))
-plt.plot(np.linspace(0.9, 0.4, 10),energy_economies_list)
+for i, column in enumerate(energy_economies_df.columns):
+    plt.plot(np.linspace(0, 10, 10),energy_economies_df[column], color=my_colors[i])
 #plt.yscale("log")
 plt.title('Energy Economies for Varying Shaving Factors')
-plt.xlabel('Loads')
-plt.ylabel('Energy Economies (kWh/year/m2)')
+plt.xlabel('Peak Saving factor [%]')
+plt.ylabel('Energy Economies (kWh/year)') # verifier si normalisation activée
 #plt.xticks(rotation=45)
 plt.legend(Loads.columns)
 plt.grid(axis='y')
 plt.show()
+
+
+
+
+
 
 
 
