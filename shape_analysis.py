@@ -28,8 +28,8 @@ import auto_analysis as aa
 import process_data as p
 
 
-"""data acquisition"""
 
+"""
 #%%
 
 # DEFINING PATHS
@@ -118,11 +118,20 @@ for typo in Typo_list:
     
 #print(Typo_loads)
 
+"""
+#%% data acquisition
+#True> total load, if False > only SIE load (without PV)
+LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.get_load_curves(False)
+
+#%% get all typologies sorted for all provided year 
+
+# if True > normalized load, if False > absolute load 
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 
 #%%
 
 # parameters to change
-Typology = "Commune"
+Typology = "Culture"
 Period = "day"
 
 # smoothing calculations
@@ -131,20 +140,10 @@ Loads = Typo_all_loads[Typology]
 df = Loads.astype(np.longdouble)
 
 #%%
-test =np.log(df.iloc[:, 0].values)
-
-# Plot histogram
-plt.hist(test, bins=30, density=True)
-plt.title('Histogram of Data')
-plt.xlabel('Value')
-plt.ylabel('Frequency')
-plt.show()
-
-#%%
 
 
 # parameters to change
-Typology = "Commune"
+Typology = "Culture"
 Period = "day"
 
 # smoothing calculations
@@ -174,7 +173,7 @@ plt.ylabel('Frequency')
 plt.show()
 
 
-#%%
+#%% extraction of a day of the week 
 
 # Specify the month you want to extract (e.g., January)
 desired_month = 12
@@ -220,7 +219,76 @@ for desired_month in range(1, 13):
     daily_mean_overall = daily_mean.mean(axis=1)
     
     #if plotting only 1 profile 
-    daily_mean_overall = sliced_3d_array.mean(axis=0)[:,2]
+    daily_mean_overall = sliced_3d_array.mean(axis=0)[:,3]
+    #daily_mean_overall = sliced_3d_array[2,:,0] # [weekday, profile,client]
+   
+    
+    Overall_means.append(daily_mean_overall)
+
+
+daily_mean = np.mean(np.array(Overall_means), axis=0)
+#daily_mean = np.array(Overall_means)[3,:] # chosing the month 
+
+plt.figure()
+plt.plot(4*daily_mean, label="Mean daily profile", c="royalblue")
+tick_labels = ["0"+str(i)+":00" if i < 10 else str(i)+":00" for i in range(1, 25, 2)]
+tick_positions = [3 +i*8 for i in range(12)]
+plt.xticks(tick_positions, tick_labels, rotation=45)
+plt.xlabel("Hours of the day")
+plt.ylabel("Load [$kW_{el}$]")
+plt.title("Given Day")
+plt.legend()
+plt.grid()
+plt.show()
+
+#%% extraction of a day of the week 
+
+# Specify the month you want to extract (e.g., January)
+desired_month = 12
+
+Overall_means = []
+for desired_month in range(1, 13):
+    df.index = pd.to_datetime(df.index)
+    
+    # Extract all instances of the desired month
+    month_df = df[df.index.month == desired_month]
+    
+    # Extract weekdays
+    weekdays_df = month_df[month_df.index.weekday < 5]
+    
+    #discarding the 2024 value
+    if desired_month == 1 :
+        weekdays_df = weekdays_df[:-1]
+    else : 
+        weekdays_df = weekdays_df[:]
+    
+    Daily_data = weekdays_df.to_numpy()
+    
+    # Define the number of rows in each slice
+    rows_per_slice = 96
+    
+    # Calculate the number of slices
+    num_slices = Daily_data.shape[0] // rows_per_slice
+    
+    # Slice the array and reshape to create a 3D array
+    sliced_3d_array = Daily_data.reshape(num_slices, rows_per_slice, -1)
+    
+    #calculate median, 5 and 95 percentile
+    
+    # Calculate median throughout the depth dimension
+    median_depth = np.median(sliced_3d_array, axis=0)
+    # Calculate 5th and 95th percentiles throughout the depth dimension
+    percentile_5 = np.percentile(sliced_3d_array, 5, axis=0)
+    percentile_95 = np.percentile(sliced_3d_array, 95, axis=0)
+    
+    
+    daily_mean = sliced_3d_array.mean(axis=0)
+    
+    daily_mean_overall = daily_mean.mean(axis=1)
+    
+    #if plotting only 1 profile 
+    #daily_mean_overall = sliced_3d_array.mean(axis=0)[:,1]
+
    
     
     Overall_means.append(daily_mean_overall)
@@ -246,7 +314,7 @@ plt.show()
 # Specify the month you want to extract (e.g., January)
 
 # parameters to change
-Typology = "Commune"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -274,7 +342,7 @@ sliced_3d_array = array.reshape(num_slices, rows_per_slice, -1)
 
 
 #if plotting an avergae of all profiles
-#weekly_mean = np.nanmean(sliced_3d_array,axis=0)
+#weekly_mean = np.nanmean(sliced_3d_array,axis=0)[:,1:]
 #weekly_mean = np.nanmean(weekly_mean,axis=1)
 
 #if plotting only 1 profile 
@@ -298,13 +366,6 @@ plt.grid()
 plt.show()
 
 #%% Generic year plot 
-
-# parameters to change
-Typology = "Commune"
-Period = "week"
-
-# smoothing calculations
-Loads = Typo_all_loads[Typology]
 
 df = Loads.astype(np.longdouble)
 

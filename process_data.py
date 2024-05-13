@@ -90,13 +90,21 @@ def discriminate_typologies(Building_dict, LoadCurve_dict, Typo_list, normalizat
             
             # translating from french to english
             if typo == "Ecole":
-                simple_IDs = ["S" + str(i) + str(j) + str(k) for k in range(len(address_list))]
-            elif typo == "Commune" or typo == "Commune2":
-                simple_IDs = ["A" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                simple_IDs = ["E" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Commune":
+                simple_IDs = ["V" + str(i) + str(j) + str(k) for k in range(len(address_list))]
             elif typo == "Culture":
                 simple_IDs = ["C" + str(i) + str(j) + str(k) for k in range(len(address_list))]
             elif typo == "Apems":
-                simple_IDs = ["D" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+                simple_IDs = ["G" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Admin":
+                simple_IDs = ["A" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Sport":
+                simple_IDs = ["S" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Buvette":
+                simple_IDs = ["B" + str(i) + str(j) + str(k) for k in range(len(address_list))]
+            elif typo == "Parking":
+                simple_IDs = ["P" + str(i) + str(j) + str(k) for k in range(len(address_list))]
             else : 
                 simple_IDs = ["O" + str(i) + str(j) + str(k) for k in range(len(address_list))]
                 
@@ -249,7 +257,7 @@ def sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023
     None.
 
     """
-    Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
+    Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking", "Autres", "Admin", "Sport"]
     print(type(Building_dict_2023), type(LoadCurve_2022_dict), type(Typo_list))
     #getting typologies from 2022
     Typo_loads_2022, _ = discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list, normalization)
