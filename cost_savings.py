@@ -251,14 +251,16 @@ my_colors = sb.color_palette("hls", financial_savings_df.shape[1])
 load_shifting_df.columns = financial_savings_df.columns
 
 total_financial_savings_df = financial_savings_df.add(load_shifting_df)
+
 # Plot the energy economies for each factor
 plt.figure(figsize=(10, 6))
-for i, column in enumerate(load_shifting_df.columns):
-    plt.plot(np.linspace(0, 10, 10),load_shifting_df[column], color=my_colors[i])
+for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
+    plt.plot(np.linspace(0, 10, 10),financial_savings_df[column], color=my_colors[i])
 #plt.yscale("log")
 plt.title('Economies financières par écrêtement des pointes (Puissance)')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
 plt.ylabel('Economies financières (CHF/année)')
+plt.locator_params(axis='y', nbins=10)
 #plt.xticks(rotation=45)
 plt.legend(Loads.columns)
 plt.grid(axis='y')
