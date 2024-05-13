@@ -21,50 +21,46 @@ import process_data as p
 
 
 def main():
-    st.title("Yearly Electric Load Series Plot")
-    st.sidebar.header("Input Data")
+    st.title("Analyse de votre consommation électrique annuelle")
+    st.sidebar.header("Données d'entrée")
     
     # Allow user to upload a CSV file containing yearly electric load data
-    uploaded_file = st.sidebar.file_uploader("Upload CSV file", type=["xlsx"])
+    uploaded_file = st.sidebar.file_uploader("Ajoutez un fichier de courbe de charge (format xlsx)", type=["xlsx"])
+    building_useful_area = st.number_input("Entrez votre surface utile (en $m^2$)", min_value=0, max_value=100000, value=1000)
     
     if uploaded_file is not None:
         # Read the CSV file into a DataFrame
         df = pd.read_excel(uploaded_file)
         
-        df_new = f.get_mean_load_kW(df)
+        df_mean_load = f.get_mean_load_kW(df) #kW/m2
+        # Assuming df is your DataFrame
+        df_mean_load = df_mean_load.rename(columns={'Charge': 'Charge [kW]'})
+
         # Display the DataFrame
-        st.subheader("Input Data:")
-        display_table(df_new)
+        st.subheader("Charge journalière moyenne:")
+        st.dataframe(df_mean_load, height=300,  width=1000)
         
         # Plot the electric load series
-        plot_load_series(df_new)
+        plot_load_series(df_mean_load, building_useful_area)
     else:
-        st.info("Please upload a CSV file.")
+        st.info("Pour commencer l'analyse, ajoutez un fichier .xlsx.")
 
-def display_table(df):
-    # Display the DataFrame with adjusted table width
-    st.markdown(
-        f"""
-        <style>
-            .dataframe {{ width: 800px; }}
-        </style>
-        """, unsafe_allow_html=True
-    )
-    st.dataframe(df, height=300,  width=1000)
-
-def plot_load_series(df):
+def plot_load_series(df, area):
     # Assume the DataFrame has a 'Year' column and a 'Electric Load' column
     #df = df.set_index('Date')
+    normalized_load = df['Charge [kW]'].copy()/area
     plt.figure(figsize=(10, 6))
-    plt.plot(df.index, df['Charge'], marker='o', linestyle='-')
-    plt.title('Yearly Electric Load Series')
-    plt.xlabel('Year')
-    plt.ylabel('Electric Load')
+    plt.plot(df.index, normalized_load, marker='o', linestyle='-')
+    plt.title('Charge électrique moyenne annuelle')
+    plt.xlabel("Jours de l'année")
+    plt.ylabel('Charge électrique [$kW/m^2$]')
     plt.grid(True)
     
     # Display the plot in Streamlit
-    st.subheader("Electric Load Plot:")
+    st.subheader("Charge journalière moyenne par unité de surface:")
     st.pyplot(plt)
+    
+    
 
 if __name__ == "__main__":
     main()

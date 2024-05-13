@@ -103,20 +103,13 @@ print(pv_2022_dict)
 
 #%% get all typologies sorted for all provided year 
 
-#School_loads =[]
-#Culture_loads = []
-#Apems_loads = []
-#Institutions_loads = []
-#Bar_loads =[]
-#Parkinglot_loads =[]
-
 Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
 
 #getting typologies from 2022
-Typo_loads_2022 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
+Typo_loads_2022, _ = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
 
 #getting typologies from 2023
-Typo_loads_2023 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
+Typo_loads_2023, _ = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
 
 # creating overall dictionnary
 Typo_all_loads = {}
@@ -129,7 +122,7 @@ for typo in Typo_list:
 #%%
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
@@ -137,6 +130,7 @@ Loads = Typo_all_loads[Typology]
 
 df = Loads.astype(np.longdouble)
 
+#%%
 test =np.log(df.iloc[:, 0].values)
 
 # Plot histogram
@@ -150,7 +144,7 @@ plt.show()
 
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
@@ -223,9 +217,14 @@ for desired_month in range(1, 13):
     
     daily_mean = sliced_3d_array.mean(axis=0)
     
-    daily_mean = daily_mean.mean(axis=1)
+    daily_mean_overall = daily_mean.mean(axis=1)
     
-    Overall_means.append(daily_mean)
+    #if plotting only 1 profile 
+    daily_mean_overall = sliced_3d_array.mean(axis=0)[:,2]
+   
+    
+    Overall_means.append(daily_mean_overall)
+
 
 daily_mean = np.mean(np.array(Overall_means), axis=0)
 
@@ -247,15 +246,15 @@ plt.show()
 # Specify the month you want to extract (e.g., January)
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
-Loads = Typo_all_loads[Typology]
+Loads = Typo_loads_2023[Typology]
 
 df = Loads.astype(np.longdouble)
 
-
+#df_nan = df.replace(0, np.nan)
 df.index = pd.to_datetime(df.index)
 
 # Extract all instances of the desired month
@@ -274,13 +273,20 @@ sliced_3d_array = array.reshape(num_slices, rows_per_slice, -1)
 #calculate median, 5 and 95 percentile
 
 
-weekly_mean = sliced_3d_array.mean(axis=0)
+#if plotting an avergae of all profiles
+#weekly_mean = np.nanmean(sliced_3d_array,axis=0)
+#weekly_mean = np.nanmean(weekly_mean,axis=1)
 
-weekly_mean = weekly_mean.mean(axis=1)
+#if plotting only 1 profile 
+weekly_mean = np.nanmean(sliced_3d_array,axis=0)[:,4]
+
 
 plt.figure()
-plt.plot(weekly_mean/np.max(weekly_mean), label="Mean weekly profile", c="orange")
-tick_labels = ['Saturday', 'Sunday','Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+if np.max(weekly_mean) > 0 : 
+    plt.plot(weekly_mean/np.max(weekly_mean), label="Mean weekly profile", c="orange")
+else:
+    plt.plot(np.zeros(weekly_mean.shape[0]), label="Mean weekly profile", c="orange")
+tick_labels = ['Sunday','Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 tick_positions = [i*96 +96/2 for i in range(7)]
 plt.xticks(tick_positions, tick_labels, rotation=45)
 
@@ -294,7 +300,7 @@ plt.show()
 #%% Generic year plot 
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "week"
 
 # smoothing calculations
@@ -314,6 +320,8 @@ tendency = f.period_tendencies(typical_year, Period)
 #f.plot_mean_load(None, tendency, period=Period, Typology=Typology)
 Annual_weekly_mean = tendency.mean(axis=1)
 
+#if plotting only one profile 
+Annual_weekly_mean = tendency.iloc[:, 0]
 
 plt.figure()
 plt.plot(Annual_weekly_mean/np.max(Annual_weekly_mean), label="Mean annual profile", c= "salmon")

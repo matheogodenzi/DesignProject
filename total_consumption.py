@@ -29,7 +29,8 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+Typo_loads_2022_n, Typo_loads_2023_n, Typo_all_loads_n, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, _ = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 
 #%% grading for comparison matrix - overload score 
 
@@ -62,7 +63,7 @@ def get_score(typology_names, parameters):
 
 
 #%%
-def get_mean_load_kW(df):
+def get_mean_load_kW(df, period="week"):
     """
     Delineate annual tendencies over days, weeks, and months and returns mean load in kW
 
@@ -82,7 +83,11 @@ def get_mean_load_kW(df):
 
     # Iterate over the DataFrame in chunks of 96 rows
     #if you want it per week you multiply the chunk_size by seven otherwise you keep 96 values per day
-    chunk_size = 96
+    if period == "week":
+        chunk_size = 96*7
+    if period == "day":
+        chunk_size = 96
+        
     for i in range(0, num_rows, chunk_size):
         chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
         chunk_kW = 4*chunk
@@ -100,15 +105,15 @@ def get_mean_load_kW(df):
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
 Loads = Typo_all_loads[Typology]
-
+Loads_n = Typo_all_loads_n[Typology]
 # Obtain a typical year averaged
 typical_year = f.typical_period(Loads,  "year")
-
+typical_year_n = f.typical_period(Loads_n,  "year")
 
 Loads_2022 = Typo_loads_2022[Typology]
 Loads_2023 = Typo_loads_2023[Typology]
@@ -116,8 +121,10 @@ Loads_2023 = Typo_loads_2023[Typology]
 # Replace zeros with NaN values
 """If you want to have both years instead of their average, change typical_year by Loads"""
 df_nan = typical_year.replace(0, np.nan)
+df_nan_n = typical_year_n.replace(0, np.nan)
 
 Daily_average_load = get_mean_load_kW(df_nan)
+Daily_average_load_n = get_mean_load_kW(df_nan_n)
 
 my_colors = sb.color_palette("hls", Daily_average_load.shape[1])
 
@@ -133,12 +140,29 @@ plt.plot(Daily_average_load.mean(1), color="royalblue", label="Profil moyen", li
 #plt.yscale("log")
 plt.grid()
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
-plt.title("Consommation habdomadaire à travers l'année - écoles")
+plt.title("Consommation habdomadaire à travers l'année - " + Typology)
+plt.xlabel("Semaines de l'année")
+plt.ylabel("Charge moyenne [$KW_{el}$]")
+plt.show()
+
+for i in range(Daily_average_load_n.shape[1]):
+    #if i in [0, 3, 7, 11]:
+    #if i in [1, 4, 8, 12]:
+    #if i in [2, 5, 6, 9, 10]:
+    #if i in [6,12]:
+        plt.plot(Daily_average_load_n.iloc[:,i], c=my_colors[i], label=Daily_average_load_n.columns[i])
+plt.plot(Daily_average_load_n.mean(1), color="royalblue", label="Profil moyen", linewidth=7, alpha=0.5)
+#plt.yscale("log")
+plt.grid()
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
+plt.title("Consommation habdomadaire à travers l'année - " + Typology)
 plt.xlabel("Semaines de l'année")
 plt.ylabel("Charge moyenne [$KW_{el}/m^2$]")
 plt.show()
 
 #%% boxplot conso journalière moyenne sur une année
+
+Daily_average_load = get_mean_load_kW(df_nan, "day")
 
 df = Daily_average_load
 
@@ -167,8 +191,68 @@ plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', lin
 
 plt.show()
 
+#%% boxplot conso journalière moyenne par m2 sur une année
 
-#%% Linear regressions 
+Daily_average_load_fdaily = get_mean_load_kW(df_nan_n, "day")
+
+df = Daily_average_load
+
+# Calculate mean for each column
+means = df.mean()
+
+# Plot boxplot
+plt.figure()
+boxplot = df.boxplot()
+plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
+plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
+plt.xlabel("Identifiants des consommateurs")
+plt.ylabel("Charge [$kW_{el}$]")
+plt.title("Distribution annuelle de la charge journalière - Ecoles")
+plt.grid(axis="x")
+
+# Extracting the boxplot elements for creating legend
+boxes = [item for item in boxplot.findobj(match=plt.Line2D)][::6]  # boxes
+medians = [item for item in boxplot.findobj(match=plt.Line2D)][5::6]  # medians
+whiskers = [item for item in boxplot.findobj(match=plt.Line2D)][2::6]  # whiskers
+caps = [item for item in boxplot.findobj(match=plt.Line2D)][3::6]  # caps
+
+# Create legend with labels
+plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', linestyle='None')], 
+           [ 'Mediane', 'Bornes', 'Moyenne'])
+
+plt.show()
+
+#%% boxplot conso journalière moyenne par m2 sur une année
+
+df = Daily_average_load_n
+
+# Calculate mean for each column
+means = df.mean()
+
+# Plot boxplot
+plt.figure()
+boxplot = df.boxplot()
+plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
+plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
+plt.xlabel("Identifiants des consommateurs")
+plt.ylabel("Charge [$kW_{el}/m^2$]")
+plt.title("Distribution annuelle de la charge journalière - "+ Typology)
+plt.grid(axis="x")
+
+# Extracting the boxplot elements for creating legend
+boxes = [item for item in boxplot.findobj(match=plt.Line2D)][::6]  # boxes
+medians = [item for item in boxplot.findobj(match=plt.Line2D)][5::6]  # medians
+whiskers = [item for item in boxplot.findobj(match=plt.Line2D)][2::6]  # whiskers
+caps = [item for item in boxplot.findobj(match=plt.Line2D)][3::6]  # caps
+
+# Create legend with labels
+plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', linestyle='None')], 
+           [ 'Mediane', 'Bornes', 'Moyenne'])
+
+plt.show()
+
+
+#%% Linear regressions for absolute average loads
 
 # Replace zeros with NaN values
 """If you want to have both years instead of their average, change typical_year by Loads"""
@@ -208,7 +292,7 @@ for i, column in enumerate(df.columns):
     
             X = np.array(infra.index).reshape(-1, 1)   # Independent variable
             #print(X)
-            y = 4*infra.values.reshape(-1, 1)              # Dependent variable
+            y = infra.values.reshape(-1, 1)              # Dependent variable
             
             # Plot data points
             #ax.scatter(X, y, color=palette[i], alpha=0.3, s=10)
@@ -235,12 +319,12 @@ for i, column in enumerate(df.columns):
             # Set labels and title
             ax.set_title(f'{column}')
             ax.set_xlabel('Jours')
-            ax.set_ylabel('Charge moyenne [$kW_{el}/m^2$]')
+            ax.set_ylabel('Charge moyenne [$kW_{el}$]')
             ax.legend()
 
 #plt.ylim(0, 3e-12)
 #plt.yscale("log")
-plt.title("Profile d'évolution de la consommation - écoles")
+plt.title("Profile d'évolution de la consommation - "+ Typology)
 # Place legend outside the plot
 plt.legend(title="Etablissements", bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.grid(which='both')
@@ -249,6 +333,86 @@ plt.show()
 
 coef_df.index = df.columns
 
+#%% Linear regressions for normalized average loads
+
+# Replace zeros with NaN values
+"""If you want to have both years instead of their average, change typical_year by Loads"""
+df_nan = Loads_n.replace(0, np.nan)
+
+Daily_average_load = get_mean_load_kW(df_nan)
+
+df  = Daily_average_load
+
+# Define your color palette
+palette = sb.color_palette("hls", df.shape[1])
+# Create an iterator to cycle through the colors
+#color_iterator = cycle(palette)
+# Create subplots
+fig, ax = plt.subplots(figsize=(8, 5))
+
+coef_df =  pd.DataFrame({'slope': [], 'y-intercept': []})
+relative_slope = []
+
+# Perform linear regression and plot for each column
+for i, column in enumerate(df.columns):
+    #if i in [0, 1, 4, 7, 9]: #low-level
+            #plt.ylim(0.0002, 0.0012)
+    #if i in [5, 8, 10, 11, 3]: #medium level
+            #plt.ylim(0.0002, 0.002)
+    #if i in [2, 6,12]:
+        
+            #plt.ylim(0.0005, 0.004)
+            
+            # Replace 0 values with NaN
+            infra = df[column].copy()
+            # Convert zeros to NaN
+            infra.replace(0, np.nan, inplace=True)
+            
+            # Drop NaN values
+            infra.dropna(inplace=True)
+    
+            X = np.array(infra.index).reshape(-1, 1)   # Independent variable
+            #print(X)
+            y = infra.values.reshape(-1, 1)              # Dependent variable
+            
+            # Plot data points
+            #ax.scatter(X, y, color=palette[i], alpha=0.3, s=10)
+            
+            
+            # Fit linear regression model
+            model = LinearRegression()
+            model.fit(X, y)
+            
+            # Extract regression coefficients
+            coefficients = model.coef_
+            intercept = model.intercept_
+            
+            specific_values = {'slope': coefficients[0][0] , 'y-intercept': intercept[0]}
+
+            coef_df_n = coef_df.append(specific_values, ignore_index=True)
+    
+            # Plot regression line
+            y_reg = model.predict(X)
+            #print(type(y_reg))
+            ax.plot(X, y_reg, c=palette[i], label=column, linewidth=2, alpha = 1)
+            
+            relative_slope.append(coefficients[0][0]/y_reg[0][0])
+            # Set labels and title
+            ax.set_title(f'{column}')
+            ax.set_xlabel('Jours')
+            ax.set_ylabel('Charge moyenne [$kW_{el}/m^2$]')
+            ax.legend()
+
+#plt.ylim(0, 3e-12)
+#plt.yscale("log")
+plt.title("Profile d'évolution de la consommation - "+ Typology)
+# Place legend outside the plot
+plt.legend(title="Etablissements", bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.grid(which='both')
+#plt.tight_layout()
+plt.show()
+
+coef_df_n.index = df.columns
 #%% plotting scores 
 
 #y for trends 
