@@ -95,18 +95,18 @@ Loads_copy.index = pd.to_datetime(Loads_copy.index, format='%d.%m.%Y %H:%M:%S')
 end_date_last_year = Loads_copy.index[-1] - pd.DateOffset(years=1)
 
 # Slice the DataFrame to get data from only the last year
-Loads_last_year = Loads_copy[end_date_last_year:] #[kW]
+Loads_last_year = Loads_copy[end_date_last_year:]
 
 df = Loads_last_year.astype(np.longdouble)
 
-
+dfkW = 4 * df
 
 
 
 #%% Peak shaving savings
 
 
-def calculate_max_values(Loads_last_year):
+def calculate_max_values(df):
     # Initialize lists to store maximum values and corresponding indexes for each month
     max_values = []
     max_indices = []
@@ -114,7 +114,7 @@ def calculate_max_values(Loads_last_year):
     # Loop through each month of the last year
     for month in range(1, 13):
         # Slice the DataFrame for the current month
-        df_month = Loads_last_year[Loads_last_year.index.month == month]
+        df_month = df[df.index.month == month]
 
         # Find the maximum value and its index for each column (client)
         max_values_month = df_month.max()
@@ -129,15 +129,15 @@ def calculate_max_values(Loads_last_year):
     max_indices_df = pd.DataFrame(max_indices, index=range(1, 13))
 
     # Set the columns of the new DataFrames to be numerical
-    max_values_df.columns = range(1, len(Loads_last_year.columns) + 1)
-    max_indices_df.columns = range(1, len(Loads_last_year.columns) + 1)
+    max_values_df.columns = range(1, len(df.columns) + 1)
+    max_indices_df.columns = range(1, len(df.columns) + 1)
 
     # Handle zero values, if needed
     max_values_df[max_values_df == 0] = np.nan
 
     return max_values_df
 
-max_values_df = calculate_max_values(Loads_last_year)
+max_values_df = calculate_max_values(df)
 
 def calculate_peak_economies(df, max_values_df, factor=0.8):
     """
@@ -172,42 +172,26 @@ plt.show()
 #%% Computing cost savings related to the energy savings
 # savings from reducing the monthly maximum load
 # Initialize an empty dataframe to store the results
-load_shifting_df = pd.DataFrame()
 
-# Iterate over factor values from 1 to 0.9 in 10 intervals
-for factor in np.linspace(1, 0.9, 10):
-    # Calculate savings
-    save_factor = 1 - factor
-    max_value_savings = max_values_df * save_factor
-    tarif = 12.39  # [CHF/kW] TOP B pic mensuel
-    peak_cost_saving = max_value_savings * tarif
-    annual_cost_saving = np.sum(peak_cost_saving, axis=0)
+def calculate_load_shifting(max_values_df, min_factor):
+    load_shifting_df = pd.DataFrame()
     
-    # Append annual cost saving as a new row to the dataframe
-    load_shifting_df = load_shifting_df.append(annual_cost_saving, ignore_index=True)
+    # Iterate over factor values from 1 to 0.9 in 10 intervals
+    for factor in np.linspace(1, min_factor, 10):
+        # Calculate savings
+        save_factor = 1 - factor
+        max_value_savings = max_values_df * save_factor
+        tarif = 12.39  # [CHF/kW] TOP B pic mensuel
+        peak_cost_saving = max_value_savings * tarif
+        annual_cost_saving = np.sum(peak_cost_saving, axis=0)
+        
+        # Append annual cost saving as a new row to the dataframe
+        load_shifting_df = load_shifting_df.append(annual_cost_saving, ignore_index=True)
+        
+    return load_shifting_df
 
-# Print the resulting dataframe
-print(load_shifting_df)
+load_shifting_df = calculate_load_shifting(calculate_max_values(dfkW), 0.9) # has to be in kW
 
-#%% load_shifting_savings
-
-### ATTENTION facteur *4 nécessaire sur Loads pour avoir en kW
-
-my_colors = sb.color_palette("hls", load_shifting_df.shape[1])
-
-
-# Plot the energy economies for each factor
-plt.figure(figsize=(10, 6))
-for i, column in enumerate(load_shifting_df.columns):
-    plt.plot(np.linspace(0, 10, 10),load_shifting_df[column], color=my_colors[i])
-#plt.yscale("log")
-plt.title('Economies financières par transfer de charge des maxima')
-plt.xlabel('Facteur de réduction des maxima mensuels [%]')
-plt.ylabel('Economies financières (CHF/année)')
-#plt.xticks(rotation=45)
-plt.legend(Loads.columns)
-plt.grid(axis='y')
-plt.show()
 
 #%% calcul de réduction des coûts selon tarif au kWh
 def calculate_financial_savings(peak_economies, HP_cost=8.44, HC_cost=2.6):
@@ -252,8 +236,54 @@ def calculate_financial_savings(peak_economies, HP_cost=8.44, HC_cost=2.6):
 # Usage:
 annual_financial_savings = calculate_financial_savings(peak_economies)
 
+#%% financial savings for varying factor of saving
+
+financial_savings_list = []
+
+for factor in np.linspace(1,0.8,10):
+    peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor)
+    financial_savings_list.append(calculate_financial_savings(peak_economies))
+
+#%% plotting total financial savings
+
+financial_savings_df = pd.concat(financial_savings_list, axis=1).T
+my_colors = sb.color_palette("hls", financial_savings_df.shape[1])
+load_shifting_df.columns = financial_savings_df.columns
+
+total_financial_savings_df = financial_savings_df.add(load_shifting_df)
+# Plot the energy economies for each factor
+plt.figure(figsize=(10, 6))
+for i, column in enumerate(load_shifting_df.columns):
+    plt.plot(np.linspace(0, 10, 10),load_shifting_df[column], color=my_colors[i])
+#plt.yscale("log")
+plt.title('Economies financières par écrêtement des pointes (Puissance)')
+plt.xlabel('Facteur de réduction des maxima mensuels [%]')
+plt.ylabel('Economies financières (CHF/année)')
+#plt.xticks(rotation=45)
+plt.legend(Loads.columns)
+plt.grid(axis='y')
+plt.show()
+"""
+#%% load_shifting_savings
+
+### ATTENTION facteur *4 nécessaire sur Loads pour avoir en kW
+
+my_colors = sb.color_palette("hls", load_shifting_df.shape[1])
 
 
+# Plot the energy economies for each factor
+plt.figure(figsize=(10, 6))
+for i, column in enumerate(load_shifting_df.columns):
+    plt.plot(np.linspace(0, 10, 10),load_shifting_df[column], color=my_colors[i])
+#plt.yscale("log")
+plt.title('Economies financières par transfer de charge des maxima')
+plt.xlabel('Facteur de réduction des maxima mensuels [%]')
+plt.ylabel('Economies financières (CHF/année)')
+#plt.xticks(rotation=45)
+plt.legend(Loads.columns)
+plt.grid(axis='y')
+plt.show()
+"""
 #%% illustrative example of peak shaving 
 palette = sb.color_palette("hls", 13)
 
@@ -272,31 +302,32 @@ plt.show()
 #%% peak shaving with load reduction
 
 ### ATTENTION garder Loads en kWh/quart d'heure
-
+def calculate_energy_economies(df):
 # Initialize an empty list to store the energy economies for each factor
-energy_economies_list = []
-
-# Iterate over the factors from 0.9 to 0.4 with 10 intervals
-for factor in np.linspace(1, 0.9, 10):
-    # Apply peak shaving with the current factor
-    df_shaved = df.copy()  # Reset df_shaved to the original DataFrame
+    energy_economies_list = []
     
-    for i in range(max_values_df.shape[0]):
-        for j in range(df_shaved[df_shaved.index.month == i + 1].shape[1]):
-            condition = (df_shaved.index.month == i + 1) & (df_shaved.iloc[:, j] > factor * max_values_df.iloc[i, j])
-            df_shaved.loc[condition, df_shaved.columns[j]] = factor * max_values_df.iloc[i, j]
-
-    # Calculate energy economies
-    peak_economies = df - df_shaved
+    # Iterate over the factors from 0.9 to 0.4 with 10 intervals
+    for factor in np.linspace(1, 0.9, 10):
+        # Apply peak shaving with the current factor
+        df_shaved = df.copy()  # Reset df_shaved to the original DataFrame
+        
+        for i in range(max_values_df.shape[0]):
+            for j in range(df_shaved[df_shaved.index.month == i + 1].shape[1]):
+                condition = (df_shaved.index.month == i + 1) & (df_shaved.iloc[:, j] > factor * max_values_df.iloc[i, j])
+                df_shaved.loc[condition, df_shaved.columns[j]] = factor * max_values_df.iloc[i, j]
     
-    # Calculate energy economies and append to the list
-    energy_economies = peak_economies.sum() # kWh/year/m2 (assuming prior normalization)
-    energy_economies_list.append(energy_economies)
-    
-
+        # Calculate energy economies
+        peak_economies = df - df_shaved
+        
+        # Calculate energy economies and append to the list
+        energy_economies = peak_economies.sum() # kWh/year/m2 (assuming prior normalization)
+        energy_economies_list.append(energy_economies)
+        energy_economies_df = pd.concat(energy_economies_list, axis=1).T
+        return energy_economies_df
+energy_economies_df = calculate_energy_economies(df)
 #%% 
 
-energy_economies_df = pd.concat(energy_economies_list, axis=1).T
+
 my_colors = sb.color_palette("hls", energy_economies_df.shape[1])
 
 
@@ -307,7 +338,7 @@ for i, column in enumerate(energy_economies_df.columns):
 #plt.yscale("log")
 plt.title('Réduction de consommation électrique par écrêtement des pointes')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
-plt.ylabel('Economies électrique ($kWh_{el}$/année)') # verifier si normalisation activée
+plt.ylabel('Economie électrique ($kWh_{el}$/année)') # verifier si normalisation activée
 #plt.xticks(rotation=45)
 plt.legend(Loads.columns)
 plt.grid(axis='y')
