@@ -31,7 +31,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Sport"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -105,14 +105,14 @@ for i, column in enumerate(df.columns):
     #"""allows to distinguish consumers more easily"""
     #if i in [0, 1, 4, 7, 9]: #low-level
             #plt.ylim(0.0002, 0.0012)
-    #if i in [5, 8, 10, 11, 3]: #medium level
+    #if i in [5, 8, 10, 11, 13]: #medium level
             #plt.ylim(0.0002, 0.002)
-    #if i in [2, 6,12]:
-    #if i in [0, 11, 7, 3, 14]: #low-level
+    #if i in [2, 6,12, 3, 14]:
+    #if i in [0, 3, 6, 9, 12]: #low-level
             #plt.ylim(0.0002, 0.0012)
-    #if i in [5, 1, 12, 8, 4]: #medium level
+    #if i in [1, 4, 7, 10, 13]: #medium level
             #plt.ylim(0.0002, 0.002)
-    #if i in [10, 6, 2, 13, 9]:
+    if i in [2, 5, 8, 11, 14]:
         
             #plt.ylim(0.0005, 0.004)
             
@@ -126,10 +126,10 @@ for i, column in enumerate(df.columns):
     
             X = np.array(infra.index).reshape(-1, 1)   # Independent variable
             #print(X)
-            y = 4*infra.values.reshape(-1, 1)              # Dependent variable
+            y = 4*infra.values.reshape(-1, 1)# factor 4 to go from kWh/15'/m2 to kW/m2
             
             # Plot data points
-            #ax.scatter(X, y, color=palette[i], alpha=0.3, s=10)
+            ax.scatter(X, y, color=palette[i], alpha=0.1, s=1)
             
             
             # Fit linear regression model
@@ -158,7 +158,7 @@ for i, column in enumerate(df.columns):
 
 #plt.ylim(0, 3e-12)
 #plt.yscale("log")
-plt.title("Evolution de la baseload")
+plt.title("Evolution de la charge de base")
 # Place legend outside the plot
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
 plt.grid(which='both')
