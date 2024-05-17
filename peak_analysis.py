@@ -9,6 +9,7 @@ Created on Thu Apr 18 16:26:11 2024
 
 import numpy as np 
 import matplotlib.pyplot as plt 
+import matplotlib.dates as mdates
 import pandas as pd
 import os
 from scipy.stats import shapiro
@@ -112,9 +113,9 @@ for j in range(sliced_3d_array.shape[2]):
         plt.scatter(x, sliced_3d_array[i, :, j], c="royalblue", alpha=0.3, s=15)
         
 
-    plt.plot(percentile_5[:,j], c="orange", label="5% percentile")
-    plt.plot(median_depth[:, j], c="red", label="median")
-    plt.plot(percentile_95[:,j], c="purple", label="95% percentile")
+    plt.plot(percentile_5[:,j], c="orange", label="$5^{ème}$ percentile")
+    plt.plot(median_depth[:, j], c="red", label="Mediane")
+    plt.plot(percentile_95[:,j], c="purple", label="$95^{ème}$ percentile")
     plt.xlabel("quarter of hours (to be changed)")
     plt.ylabel("load [$kWh_{el}/m^2$]")
     plt.grid()
@@ -148,9 +149,19 @@ anomalies_signi[peak_anomaly_test != 2] = np.nan
 
 x = np.arange(96)  # Using arange instead of list comprehension
 
+hour_ticks = np.arange(0, 96, 8)
+
+
+# Create hour labels (0, 1, 2, ..., 23)
+hour_labels = [str(i) for i in range(0, 24, 2)]
+
+
+
 # Initialize the labels for anomalies
 anomalies_mild_label = None
 anomalies_signi_label = None
+
+
 
 for j in range(sliced_3d_array.shape[2]):
     plt.figure()
@@ -163,20 +174,23 @@ for j in range(sliced_3d_array.shape[2]):
         
         # Set labels for anomalies outside the loop
         if i == 0:
-            anomalies_mild_label = plt.scatter([], [], c="orange", label="Anomalies Mild", alpha=0.7)
-            anomalies_signi_label = plt.scatter([], [], c="red", label="Anomalies Significant", alpha=0.7)
-    
+            anomalies_mild_label = plt.scatter([], [], c="orange", label="Anomalies bénignes", alpha=0.7)
+            anomalies_signi_label = plt.scatter([], [], c="red", label="Anomalies significatives", alpha=0.7)
+            percentile_5_label = plt.plot([], [], c="orange", label="$5^{ème}$ percentile")
     # Plotting percentiles and median
-    plt.plot(percentile_5[:, j], c="orange", label="5% percentile")
-    plt.plot(median_depth[:, j], c="red", label="median")
-    plt.plot(percentile_95[:, j], c="purple", label="95% percentile")
+    plt.plot(percentile_5[:,j], c="orange", label="$5^{ème}$ percentile")
+    plt.plot(median_depth[:, j], c="red", label="Mediane")
+    plt.plot(percentile_95[:,j], c="purple", label="$95^{ème}$ percentile")
     
+
+
     # Setting labels, legend, and grid
-    plt.xlabel("Quarter of hours (to be changed)")
-    plt.ylabel("Load [$kWh_{el}/m^2$]")
+    plt.xticks(hour_ticks)
+    plt.gca().set_xticklabels(hour_labels)
+    plt.xlabel("Heures de la journée")
+    plt.ylabel("Charge [$kWh_{el}/m^2$]")
     plt.grid()
     plt.legend(handles=[anomalies_mild_label, anomalies_signi_label])
-    plt.rcParams['figure.dpi'] = 300
     plt.show()
 
 #%% Counting the anomalies per category
@@ -264,6 +278,7 @@ count_twos_dfT = count_twos_df.T
 count_ones_dfT[count_ones_dfT == 0] = np.nan    
 count_twos_dfT[count_twos_dfT == 0] = np.nan
 
+"""
 #%% sum of mild and significant anomalies for each customer
 total_mild_occurences = count_ones_dfT.sum(axis=0)
 total_sign_occurences = count_twos_dfT.sum(axis=0)
@@ -286,7 +301,7 @@ plt.xticks(rotation=45)
 
 # Displaying the plot
 plt.show()
-
+"""
 #%% sum of mild and significant anomalies for each customer
 total_mild_occurences = count_ones_dfT.sum(axis=0)
 total_sign_occurences = count_twos_dfT.sum(axis=0)
@@ -295,12 +310,12 @@ total_sign_occurences = count_twos_dfT.sum(axis=0)
 #values = list(total_mild_occurences.values())
 
 # Plotting the bar plot
-plt.bar(Loads.columns, total_sign_occurences, color=hls_palette[8])
+plt.bar(Loads.columns, total_sign_occurences, color='royalblue')
 
 # Adding labels and title
-plt.xlabel('Consumers')
+plt.xlabel('Consommateurs')
 plt.ylabel('Occurences')
-plt.title('Occurences of significant anomalies')
+plt.title('Occurences annuelles des anomalies significatives')
 
 # Rotating x-axis labels for better readability (optional)
 plt.xticks(rotation=45)
@@ -311,11 +326,16 @@ plt.show()
 #%% Computing the averages
 avg_ones = np.nanmean(count_ones_dfT, axis=1)
 avg_twos = np.nanmean(count_twos_dfT, axis=1)
+avg_twos = pd.Series(avg_twos)
+
+# Ensure avg_twos has the correct index
+avg_twos.index = range(1, len(avg_twos) + 1)
+print(avg_twos.index)
 #%% plotting the occurences
-
+my_palette = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 # Generate HLS color palette with 13 colors
-hls_palette = sb.color_palette("hls", 13)
-
+hls_palette = sb.color_palette("hls", Loads.shape[1])
+"""
 # Plot count_ones_df
 plt.figure(figsize=(10, 6))
 for client in count_ones_dfT.columns:
@@ -327,18 +347,18 @@ plt.ylabel('Occurrences')
 plt.xticks(range(1, 13))
 plt.legend(title='Consumers', loc='center left', bbox_to_anchor=(1, 0.4))
 plt.grid(True)
-plt.show()
+plt.show()"""
 
 # Plot count_twos_df
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(6, 5))
 for i, client in enumerate(count_twos_dfT.columns):
-    plt.plot(count_twos_dfT.index, count_twos_dfT[client], label=Loads.columns[client-1], color=hls_palette[client-1])
-plt.plot(avg_twos.index, avg_twos, label="Average", color="blue", linewidth=5, alpha=0.5)
-plt.title('Occurrences of Significant Anomalies by Month')
-plt.xlabel('Month')
+    plt.plot(count_twos_dfT.index, count_twos_dfT[client], label=Loads.columns[client-1], color=my_palette[client-1])
+plt.plot(avg_twos.index, avg_twos, label="Moyenne", color="blue", linewidth=5, alpha=0.5)
+plt.title('Occurrences mensuelles des anomalies significatives')
+plt.xlabel('Mois')
 plt.ylabel('Occurrences')
 plt.xticks(range(1, 13))
-plt.legend(title='Consumers', loc='center left', bbox_to_anchor=(1, 0.4))
+plt.legend(title='Consommateurs', loc='center left', bbox_to_anchor=(1, 0.4))
 plt.grid(True)
 plt.show()
 
@@ -432,7 +452,7 @@ max_values_df[max_values_df == 0] = np.nan
 max_values_dfkW = max_values_df * 4
 avg_maxvalues = np.nanmean(max_values_dfkW, axis=1)
 # Generate HLS color palette with 13 colors
-hls_palette = sb.color_palette("hls", 13)
+hls_palette = sb.color_palette("hls", Loads.shape[1])
 
 # Plot max_values_df
 plt.figure(figsize=(10, 6))

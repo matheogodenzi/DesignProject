@@ -44,6 +44,8 @@ typical_year = f.typical_period(Loads,  "year")
 Loads_2022 = Typo_loads_2022[Typology]
 Loads_2023 = Typo_loads_2023[Typology]
 
+my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
+
 
 #%%
 def get_baseload_2(df):
@@ -95,11 +97,11 @@ df = Loads.astype(np.longdouble)
 baseloads = get_baseload_2(df)
 
 #print(df[df.index.duplicated()]) # duplicates come from time change 
-df = baseloads
+df = 1000*baseloads
 
 # Define your color palette
 palette = sns.color_palette("hls", df.shape[1])
-fig, ax = plt.subplots(figsize=(8, 5))
+fig, ax = plt.subplots(figsize=(6, 5))
 
 coef_df =  pd.DataFrame({'slope': [], 'y-intercept': []})
 relative_slope = []
@@ -113,7 +115,7 @@ for i, column in enumerate(df.columns):
     #if i in [2, 4, 9, 11, 14]:
             #plt.ylim(0.0002, 0.0030)
         
-            plt.ylim(-0.0008, 0.0008)
+            plt.ylim(-0.8, 0.8)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -143,21 +145,21 @@ for i, column in enumerate(df.columns):
             # Plot regression line
             y_reg = model.predict(X)
             #print(type(y_reg))
-            ax.plot(X, y_reg-specific_values['y-intercept'], c=palette[i], label=column, linewidth=2, alpha = 1)
+            ax.plot(X, y_reg-specific_values['y-intercept'], c=my_colors[i], label=column, linewidth=2, alpha = 1)
             
             # Plot data points
-            ax.scatter(X, y-specific_values['y-intercept'], color=palette[i], alpha=0.3, s=1)
+            ax.scatter(X, y-specific_values['y-intercept'], color=my_colors[i], alpha=0.3, s=1)
             
             relative_slope.append(coefficients[0][0]/y_reg[0][0])
             # Set labels and title
             ax.set_title(f'{column}')
             ax.set_xlabel('Jours')
-            ax.set_ylabel('Baseload [$kW_{el}/m^2$]')
+            ax.set_ylabel('Charge de base [$W_{el}/m^2$]')
             ax.legend()
 
 #plt.ylim(0, 3e-12)
 #plt.yscale("log")
-plt.title("Evolution de la charge de base - échantillon 1")
+plt.title("Evolution de la charge de base")
 # Place legend outside the plot
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
 plt.grid(which='both')
@@ -206,17 +208,13 @@ plt.show()
 
 #%% average daily baseload throughout the years
 
-
-# Define your color palette
-my_colors = sb.color_palette("hls", result.shape[1])
-
 plt.figure
 plt.plot(baseloads)
 plt.grid()
 plt.xlabel("weeks of the year")
 plt.show()
 
-plt.figure()
+plt.figure(figsize=(6,5))
 
 for i, column in enumerate(result.columns):
     #if i in [0, 1, 4, 7, 9]: #low-level
@@ -226,21 +224,21 @@ for i, column in enumerate(result.columns):
     #if i in [2, 6,12]:
     
             if column == "E202" or column == "E301":
-                mean = 4*(baseloads[column].tail(365).values)
+                mean = 1000*4*(baseloads[column].tail(365).values)
                 plt.plot(mean, color=my_colors[i], label=column)
             else : 
-                mean = 4*(baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
+                mean = 1000*4*(baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
                 plt.plot(mean, color=my_colors[i], label=column)
 
             print(f"{column} : {np.max(mean)/np.min(mean)}")
             
-plt.yscale('log')
+#plt.yscale('log')
 
 plt.grid(which="both", alpha=0.5)
-plt.xlabel("Days of the year")
-plt.ylabel("Baseload - [$kW_{el}/m^2$]")
-plt.title("Low-level consumers").set_position([0.55, 1])
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+plt.xlabel("Jours de l'année")
+plt.ylabel("Charge de base - [$W_{el}/m^2$]")
+plt.title("Profil annuel de la charge de base").set_position([0.55, 1])
+plt.legend(title= "Consommateurs", loc='upper left', bbox_to_anchor=(1, 1))
 #plt.legend()
 #plt.subplots_adjust(top=2)
 plt.show()
@@ -255,7 +253,7 @@ baseloads_av = pd.DataFrame(average_array, columns=baseloads.columns)
 means = baseloads_av.mean(axis=0)
 
 # Plot boxplot for aboslute values
-plt.figure()
+plt.figure(figsize=(6,5))
 flierprops = dict(marker='*', markerfacecolor='b', markersize=4, linestyle='none', label="extrêmes")
 
 boxplot = baseloads_av.boxplot(flierprops=flierprops)
@@ -283,11 +281,8 @@ plt.show()
 y = np.array(relative_slope)
 x = df.columns
 
-
-my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
-
-
 # Create a bar plot
+plt.figure(figsize=(6,5))
 plt.bar(np.arange(len(y)), 100*365*y, color="royalblue")
 
 yy = 100*365*y

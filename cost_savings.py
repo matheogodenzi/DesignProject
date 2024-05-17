@@ -247,15 +247,15 @@ for factor in np.linspace(1,0.8,10):
 #%% plotting total financial savings
 
 financial_savings_df = pd.concat(financial_savings_list, axis=1).T
-my_colors = sb.color_palette("hls", financial_savings_df.shape[1])
+my_colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 load_shifting_df.columns = financial_savings_df.columns
 
 total_financial_savings_df = financial_savings_df.add(load_shifting_df)
 
-# Plot the energy economies for each factor
-plt.figure(figsize=(10, 6))
+# PUISSANCE
+plt.figure(figsize=(6, 5))
 for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
-    plt.plot(np.linspace(0, 10, 10),financial_savings_df[column], color=my_colors[i])
+    plt.plot(np.linspace(0, 10, 10),load_shifting_df[column], color=my_colors[i])
 #plt.yscale("log")
 plt.title('Economies financières par écrêtement des pointes (Puissance)')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
@@ -265,40 +265,52 @@ plt.locator_params(axis='y', nbins=10)
 plt.legend(Loads.columns)
 plt.grid(axis='y')
 plt.show()
-"""
-#%% load_shifting_savings
 
-### ATTENTION facteur *4 nécessaire sur Loads pour avoir en kW
-
-my_colors = sb.color_palette("hls", load_shifting_df.shape[1])
-
-
-# Plot the energy economies for each factor
-plt.figure(figsize=(10, 6))
-for i, column in enumerate(load_shifting_df.columns):
-    plt.plot(np.linspace(0, 10, 10),load_shifting_df[column], color=my_colors[i])
+# ENERGIE
+plt.figure(figsize=(6, 5))
+for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
+    plt.plot(np.linspace(0, 10, 10),financial_savings_df[column], color=my_colors[i])
 #plt.yscale("log")
-plt.title('Economies financières par transfer de charge des maxima')
+plt.title('Economies financières par écrêtement des pointes (Energie)')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
 plt.ylabel('Economies financières (CHF/année)')
+plt.locator_params(axis='y', nbins=10)
 #plt.xticks(rotation=45)
 plt.legend(Loads.columns)
 plt.grid(axis='y')
 plt.show()
-"""
+
+
+# TOTAL
+plt.figure(figsize=(6, 5))
+for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
+    plt.plot(np.linspace(0, 10, 10),total_financial_savings_df[column], color=my_colors[i])
+#plt.yscale("log")
+plt.title('Economies financières par écrêtement des pointes (total)')
+plt.xlabel('Facteur de réduction des maxima mensuels [%]')
+plt.ylabel('Economies financières (CHF/année)')
+plt.locator_params(axis='y', nbins=10)
+#plt.xticks(rotation=45)
+plt.legend(Loads.columns)
+plt.grid(axis='y')
+plt.show()
+
 #%% illustrative example of peak shaving 
 palette = sb.color_palette("hls", 13)
 
-plt.plot(df['E103'], color=palette[0])
-plt.plot(df_shaved['E103'], color=palette[7])
-plt.legend(["Shaved peaks","Remaining load"])
+peak_economies, df_shaved = calculate_peak_economies(dfkW, calculate_max_values(dfkW), factor=0.9)
+slct_cons = 'E302'
+plt.plot(dfkW[slct_cons], color=palette[0])
+plt.plot(df_shaved[slct_cons], color='royalblue')
+plt.legend(["Ecrêtement","Charge restante"])
 # Format x-axis ticks to display only the month
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%W'))
 plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
 
 plt.tick_params(axis='both', which='major', labelsize=9)
-plt.xlabel("Weeks of the year")
-plt.ylabel("Load - [$kW_{el}/m^2$]")
+plt.xlabel("Semaine")
+plt.ylabel("Charge - [$kW_{el}/m^2$]")
+plt.title("Illustration de l'écrêtement des pointes")
 plt.show()
 
 #%% peak shaving with load reduction
@@ -330,7 +342,7 @@ energy_economies_df = calculate_energy_economies(df)
 #%% 
 
 
-my_colors = sb.color_palette("hls", energy_economies_df.shape[1])
+my_colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 
 
 # Plot the energy economies for each factor
