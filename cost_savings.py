@@ -289,8 +289,8 @@ plt.show()
 #%% illustrative example of peak shaving 
 palette = sb.color_palette("hls", 13)
 
-plt.plot(df['S103'], color=palette[0])
-plt.plot(df_shaved['S103'], color=palette[7])
+plt.plot(df['E103'], color=palette[0])
+plt.plot(df_shaved['E103'], color=palette[7])
 plt.legend(["Shaved peaks","Remaining load"])
 # Format x-axis ticks to display only the month
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%W'))

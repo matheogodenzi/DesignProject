@@ -11,15 +11,11 @@ Created on Fri Apr 26 13:58:17 2024
 import numpy as np 
 import matplotlib.pyplot as plt 
 import pandas as pd
-import os
-from scipy.stats import shapiro
 import seaborn as sb
 from sklearn.linear_model import LinearRegression
 """functions imports"""
 
 import functions as f
-import controls as c
-import auto_analysis as aa
 import process_data as p
 
 
@@ -29,7 +25,10 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
+"""normalized loads in kWh/15'/m2 """
 Typo_loads_2022_n, Typo_loads_2023_n, Typo_all_loads_n, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+
+"""absolute loads in kWh/15'"""
 Typo_loads_2022, Typo_loads_2023, Typo_all_loads, _ = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 
 #%% grading for comparison matrix - overload score 
@@ -108,13 +107,15 @@ def get_mean_load_kW(df, period="week"):
 Typology = "Commune"
 Period = "day"
 
+#%%
 # smoothing calculations
-Loads = Typo_all_loads[Typology]
+Loads = Typo_all_loads[Typology] 
 Loads_n = Typo_all_loads_n[Typology]
 # Obtain a typical year averaged
 typical_year = f.typical_period(Loads,  "year")
 typical_year_n = f.typical_period(Loads_n,  "year")
 
+#specific years if needed in kWel
 Loads_2022 = Typo_loads_2022[Typology]
 Loads_2023 = Typo_loads_2023[Typology]
 
@@ -123,13 +124,13 @@ Loads_2023 = Typo_loads_2023[Typology]
 df_nan = typical_year.replace(0, np.nan)
 df_nan_n = typical_year_n.replace(0, np.nan)
 
-Daily_average_load = get_mean_load_kW(df_nan)
-Daily_average_load_n = get_mean_load_kW(df_nan_n)
+Daily_average_load = get_mean_load_kW(df_nan, "day")
+Daily_average_load_n = get_mean_load_kW(df_nan_n, "day")
 
 my_colors = sb.color_palette("hls", Daily_average_load.shape[1])
 
 plt.figure()
-
+#absolute plot 
 for i in range(Daily_average_load.shape[1]):
     #if i in [0, 3, 7, 11]:
     #if i in [1, 4, 8, 12]:
@@ -145,6 +146,7 @@ plt.xlabel("Semaines de l'année")
 plt.ylabel("Charge moyenne [$KW_{el}$]")
 plt.show()
 
+# normalized plot
 for i in range(Daily_average_load_n.shape[1]):
     #if i in [0, 3, 7, 11]:
     #if i in [1, 4, 8, 12]:
@@ -162,14 +164,17 @@ plt.show()
 
 #%% boxplot conso journalière moyenne sur une année
 
-Daily_average_load = get_mean_load_kW(df_nan, "day")
+Daily_average_load = get_mean_load_kW(df_nan, "day") #load in kWel
+Daily_average_load_n = get_mean_load_kW(df_nan_n, "day")#load in kWel/m2
 
 df = Daily_average_load
+df_n = Daily_average_load_n
 
 # Calculate mean for each column
 means = df.mean()
+means_n = df_n.mean()
 
-# Plot boxplot
+# Plot boxplot for aboslute values
 plt.figure()
 boxplot = df.boxplot()
 plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
@@ -191,52 +196,14 @@ plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', lin
 
 plt.show()
 
-#%% boxplot conso journalière moyenne par m2 sur une année
-
-Daily_average_load_fdaily = get_mean_load_kW(df_nan_n, "day")
-
-df = Daily_average_load
-
-# Calculate mean for each column
-means = df.mean()
-
-# Plot boxplot
+# Plot boxplot for normalized values 
 plt.figure()
-boxplot = df.boxplot()
-plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
-plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
-plt.xlabel("Identifiants des consommateurs")
-plt.ylabel("Charge [$kW_{el}$]")
-plt.title("Distribution annuelle de la charge journalière - Ecoles")
-plt.grid(axis="x")
-
-# Extracting the boxplot elements for creating legend
-boxes = [item for item in boxplot.findobj(match=plt.Line2D)][::6]  # boxes
-medians = [item for item in boxplot.findobj(match=plt.Line2D)][5::6]  # medians
-whiskers = [item for item in boxplot.findobj(match=plt.Line2D)][2::6]  # whiskers
-caps = [item for item in boxplot.findobj(match=plt.Line2D)][3::6]  # caps
-
-# Create legend with labels
-plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', linestyle='None')], 
-           [ 'Mediane', 'Bornes', 'Moyenne'])
-
-plt.show()
-
-#%% boxplot conso journalière moyenne par m2 sur une année
-
-df = Daily_average_load_n
-
-# Calculate mean for each column
-means = df.mean()
-
-# Plot boxplot
-plt.figure()
-boxplot = df.boxplot()
-plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
-plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
+boxplot = df_n.boxplot()
+plt.scatter(range(1, len(df_n.columns) + 1), means_n, color='red', label='Mean', zorder=3, s=10)
+plt.xticks(ticks=range(1, len(df_n.columns) + 1), labels=df_n.columns, rotation=45)
 plt.xlabel("Identifiants des consommateurs")
 plt.ylabel("Charge [$kW_{el}/m^2$]")
-plt.title("Distribution annuelle de la charge journalière - "+ Typology)
+plt.title("Distribution annuelle de la charge journalière - Ecoles")
 plt.grid(axis="x")
 
 # Extracting the boxplot elements for creating legend
@@ -250,7 +217,6 @@ plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', lin
            [ 'Mediane', 'Bornes', 'Moyenne'])
 
 plt.show()
-
 
 #%% Linear regressions for absolute average loads
 
@@ -258,9 +224,9 @@ plt.show()
 """If you want to have both years instead of their average, change typical_year by Loads"""
 df_nan = Loads.replace(0, np.nan)
 
-Daily_average_load = get_mean_load_kW(df_nan)
+Daily_average_load = get_mean_load_kW(df_nan, "day")
 
-df  = Daily_average_load
+df  = Daily_average_load.copy()
 
 # Define your color palette
 palette = sb.color_palette("hls", df.shape[1])
@@ -339,9 +305,9 @@ coef_df.index = df.columns
 """If you want to have both years instead of their average, change typical_year by Loads"""
 df_nan = Loads_n.replace(0, np.nan)
 
-Daily_average_load = get_mean_load_kW(df_nan)
+Daily_average_load = get_mean_load_kW(df_nan, "day")
 
-df  = Daily_average_load
+df  = Daily_average_load.copy()
 
 # Define your color palette
 palette = sb.color_palette("hls", df.shape[1])
@@ -416,15 +382,21 @@ coef_df_n.index = df.columns
 #%% plotting scores 
 
 #y for trends 
-#y = np.array(relative_slope)*100*365
+# y = np.array(relative_slope)*100*365
 
-#y for mean values 
+# #y for mean values 
+# df_nan = typical_year.replace(0, np.nan)
+# Daily_average_load = get_mean_load_kW(df_nan) #kW
+# Dailymeans = Daily_average_load.mean()
+# y = Dailymeans.values
 
-df_nan = typical_year.replace(0, np.nan)
-Daily_average_load = get_mean_load_kW(df_nan)
-Dailymeans = Daily_average_load.mean()
+#y for mean values normalized
+df_nan_n = typical_year_n.replace(0, np.nan)
+Daily_average_load_n = get_mean_load_kW(df_nan_n) # kW/m2
+Dailymeans_n = Daily_average_load_n.mean()
+y = Dailymeans_n.values
 
-y = Dailymeans.values
+
 print(y)
 x= coef_df.index
 

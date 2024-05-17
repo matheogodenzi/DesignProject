@@ -28,7 +28,7 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
 #%%
 
 def get_mean_load_kW(df):
@@ -38,12 +38,12 @@ def get_mean_load_kW(df):
     Parameters
     ----------
     df : DataFrame
-        Input DataFrame.
+        Input DataFrame. in kWh/quarter of hour/m2 or kWh/quarter of hour depending on the normalization
 
     Returns
     -------
     result : DataFrame
-        DataFrame containing the mean of the 6 smallest values of each column.
+        DataFrame in kW/m2 or kW depending on the normalization.
     """
 
     num_rows = df.shape[0]
@@ -86,7 +86,7 @@ Loads_2023 = Typo_loads_2023[Typology]
 #%%
 # Replace zeros with NaN values
 """If you want to have both years instead of their average, change typical_year by Loads"""
-df_nan = Loads.replace(0, np.nan)
+df_nan = typical_year.replace(0, np.nan)
 df_nan.index = pd.to_datetime(df_nan.index, format='%d.%m.%Y %H:%M:%S')
 week_ends_df = df_nan[(df_nan.index.weekday == 5) | (df_nan.index.weekday == 6)]  # 5 and 6 represent Saturday and Sunday respectively
 
@@ -117,24 +117,24 @@ plt.grid(axis="x")
 
 # Replace zeros with NaN values
 """If you want to have both years instead of their average, change typical_year by Loads"""
-df_nan = Loads.replace(0, np.nan)
+df_nan = typical_year.replace(0, np.nan)
 df_nan.index = pd.to_datetime(df_nan.index, format='%d.%m.%Y %H:%M:%S')
-week_ends_df = df_nan[(df_nan.index.weekday == 0) |(df_nan.index.weekday == 1) |(df_nan.index.weekday == 2) |(df_nan.index.weekday == 3) |(df_nan.index.weekday == 4)]  # 0-4 represent week days respectively
+week_days_df = df_nan[(df_nan.index.weekday == 0) |(df_nan.index.weekday == 1) |(df_nan.index.weekday == 2) |(df_nan.index.weekday == 3) |(df_nan.index.weekday == 4)]  # 0-4 represent week days respectively
 
-Weekend_day_average_load = get_mean_load_kW(week_ends_df)
+Week_day_average_load = get_mean_load_kW(week_days_df)
 
-my_colors = sb.color_palette("hls", Weekend_day_average_load.shape[1])
+my_colors = sb.color_palette("hls", Week_day_average_load.shape[1])
 
 
 plt.figure()
-for i in range(Weekend_day_average_load.shape[1]):
-    plt.plot(Weekend_day_average_load.iloc[:, i], c= my_colors[i], label=Weekend_day_average_load.columns[i])
+for i in range(Week_day_average_load.shape[1]):
+    plt.plot(Week_day_average_load.iloc[:, i], c= my_colors[i], label=Week_day_average_load.columns[i])
 plt.grid()
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
 plt.title("")
 plt.show()
 
-df = Weekend_day_average_load.copy()
+df = Week_day_average_load.copy()
 # Plot boxplot
 plt.figure()
 boxplot = df.boxplot()
