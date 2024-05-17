@@ -411,7 +411,7 @@ avg_twos = np.nanmean(count_twos_dfT, axis=1)
 
 # Generate HLS color palette with 13 colors
 hls_palette = sb.color_palette("hls", 13)
-
+"""
 # Plot count_ones_df
 plt.figure(figsize=(10, 6))
 for client in count_ones_dfT.columns:
@@ -423,7 +423,7 @@ plt.ylabel('Occurrences')
 plt.xticks(range(1, 13))
 plt.legend(title='Consumers', loc='center left', bbox_to_anchor=(1, 0.4))
 plt.grid(True)
-plt.show()
+plt.show()"""
 
 # Plot count_twos_df
 plt.figure(figsize=(10, 6))
