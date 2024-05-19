@@ -104,7 +104,7 @@ def get_mean_load_kW(df, period="week"):
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Commune"
+Typology = "Ecole"
 Period = "day"
 
 #%%
@@ -124,10 +124,11 @@ Loads_2023 = Typo_loads_2023[Typology]
 df_nan = typical_year.replace(0, np.nan)
 df_nan_n = typical_year_n.replace(0, np.nan)
 
-Daily_average_load = get_mean_load_kW(df_nan, "day")
-Daily_average_load_n = get_mean_load_kW(df_nan_n, "day")
+Daily_average_load = get_mean_load_kW(df_nan)
+Daily_average_load_n = get_mean_load_kW(df_nan_n)
 
-my_colors = sb.color_palette("hls", Daily_average_load.shape[1])
+my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
+
 
 plt.figure()
 #absolute plot 
@@ -137,7 +138,7 @@ for i in range(Daily_average_load.shape[1]):
     #if i in [2, 5, 6, 9, 10]:
     #if i in [6,12]:
         plt.plot(Daily_average_load.iloc[:,i], c=my_colors[i], label=Daily_average_load.columns[i])
-plt.plot(Daily_average_load.mean(1), color="royalblue", label="Profil moyen", linewidth=7, alpha=0.5)
+plt.plot(Daily_average_load.mean(1), color="blue", label="Profil moyen", linewidth=5, alpha=0.5)
 #plt.yscale("log")
 plt.grid()
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
@@ -153,7 +154,7 @@ for i in range(Daily_average_load_n.shape[1]):
     #if i in [2, 5, 6, 9, 10]:
     #if i in [6,12]:
         plt.plot(Daily_average_load_n.iloc[:,i], c=my_colors[i], label=Daily_average_load_n.columns[i])
-plt.plot(Daily_average_load_n.mean(1), color="royalblue", label="Profil moyen", linewidth=7, alpha=0.5)
+plt.plot(Daily_average_load_n.mean(1), color="blue", label="Profil moyen", linewidth=5, alpha=0.5)
 #plt.yscale("log")
 plt.grid()
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
