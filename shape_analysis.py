@@ -10,6 +10,7 @@ Created on Fri Apr 19 15:09:03 2024
 import numpy as np 
 import matplotlib.pyplot as plt 
 import pandas as pd
+import matplotlib as mpl
 
 
 """functions imports"""
@@ -25,7 +26,7 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
 
 #%%
 
@@ -33,34 +34,16 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 Typology = "Culture"
 Period = "day"
 
+
+my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
+# Set the default color cycle
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=my_colors)
+
+
 # smoothing calculations
-Loads = Typo_all_loads[Typology]
+Loads = Typo_loads_2023[Typology]
 
 df = 4*Loads.astype(np.longdouble) #kWel
-
-#%%
-
-
-data = df.iloc[:,0]
-plt.plot(data[1000:1344])
-plt.show()
-
-# Calculate the 25th, 50th (median), and 75th percentiles
-p5 = np.percentile(data, 5)
-p50 = np.percentile(data, 50)  # Equivalent to np.median(data)
-p75 = np.percentile(data, 75)
-p98 = np.percentile(data, 98)
-
-# Plot histogram
-plt.hist(data, bins=30, density=True)
-# Plot vertical lines
-plt.axvline(x=p5, color='r', linestyle='--')  # Vertical line at x=2
-plt.axvline(x=p98, color='g', linestyle=':')   # Vertical line at x=4
-
-plt.title('Histogram of Data')
-plt.xlabel('Value')
-plt.ylabel('Frequency')
-plt.show()
 
 
 #%% Generic day
@@ -109,8 +92,8 @@ for desired_month in range(1, 13):
     daily_mean_overall = daily_mean.mean(axis=1)
     
     #if plotting only 1 profile 
-    daily_mean_overall = sliced_3d_array.mean(axis=0)[:,1]
     #daily_mean_overall = sliced_3d_array[2,:,0] # [weekday, profile,client]
+    daily_mean_overall = sliced_3d_array.mean(axis=0)[:,1]
    
     
     Overall_means.append(daily_mean_overall)
@@ -120,7 +103,7 @@ daily_mean = np.mean(np.array(Overall_means), axis=0)
 #daily_mean = np.array(Overall_means)[3,:] # chosing the month 
 
 plt.figure()
-plt.plot(daily_mean, label="Mean daily profile", c="royalblue")
+plt.plot(daily_mean, label="Mean daily profile", c="royalblue", linewidth=5, alpha=0.5)
 tick_labels = ["0"+str(i)+":00" if i < 10 else str(i)+":00" for i in range(1, 25, 2)]
 tick_positions = [3 +i*8 for i in range(12)]
 plt.xticks(tick_positions, tick_labels, rotation=45)
@@ -133,10 +116,11 @@ plt.show()
 
 #%% extraction of a day of the week 
 
-# Specify the month you want to extract (e.g., January)
-desired_month = 12
+# # Specify the month you want to extract (e.g., January)
+# desired_month = 12
 
 Overall_means = []
+daily_mean_monthly = []
 for desired_month in range(1, 13):
     df.index = pd.to_datetime(df.index)
     
@@ -174,6 +158,10 @@ for desired_month in range(1, 13):
     
     daily_mean = sliced_3d_array.mean(axis=0)
     
+    #storing all months
+    daily_mean_monthly.append(daily_mean)
+    
+    # general average
     daily_mean_overall = daily_mean.mean(axis=1)
     
     #if plotting only 1 profile 
@@ -184,33 +172,39 @@ for desired_month in range(1, 13):
     Overall_means.append(daily_mean_overall)
 
 
-daily_mean = np.mean(np.array(Overall_means), axis=0)
+# getting the overall average 
+daily_mean_average = np.mean(np.array(Overall_means), axis=0)
 
-plt.figure()
-plt.plot(daily_mean/np.max(daily_mean), label="Mean daily profile", c="royalblue")
+# getting individual avergaes 
+daily_mean_individual =  np.stack(daily_mean_monthly).mean(axis=0)
+
+
+plt.figure(figsize=(6,5))
+plt.plot(1000*daily_mean_individual)
+plt.plot(1000*daily_mean_average, label="Profil journalier moyen", c="blue", linewidth=5, alpha=0.5)
 tick_labels = ["0"+str(i)+":00" if i < 10 else str(i)+":00" for i in range(1, 25, 2)]
 tick_positions = [3 +i*8 for i in range(12)]
 plt.xticks(tick_positions, tick_labels, rotation=45)
-plt.xlabel("Hours of the day")
-plt.ylabel("Relative load [-]")
-plt.title("Generic Day")
-plt.legend()
+plt.xlabel("Heures de la journées")
+plt.ylabel("Charge [$W_{el}/m^2$]")
+plt.title("Journée type")
+plt.legend( df.columns.tolist() + ["Profil moyen"], bbox_to_anchor=(1.05, 1), loc='upper left', title="Clients")
 plt.grid()
 plt.show()
 
-
+print(type(df.columns))
 #%% Generic week plot 
 
 
 # extracting loads of 2023
 Loads = Typo_loads_2023[Typology]
 
-df = Loads.astype(np.longdouble)
+df = 4*Loads.astype(np.longdouble) #kWel
 
 #df_nan = df.replace(0, np.nan)
 df.index = pd.to_datetime(df.index)
 
-# Extract all instances of the desired month
+# Extract all instances of the desired months
 array = df.to_numpy()
 array = array[:7*96*52, :]
 
@@ -227,28 +221,28 @@ sliced_3d_array = array.reshape(num_slices, rows_per_slice, -1)
 
 
 #if plotting an avergae of all profiles
-weekly_mean = np.nanmean(sliced_3d_array,axis=0)[:,0] #select the right profiles creating the right mask 
-#weekly_mean = np.nanmean(weekly_mean,axis=1)
+weekly_mean = np.nanmean(sliced_3d_array,axis=0)
+weekly_mean_overall = np.nanmean(weekly_mean,axis=1)
 
 #if plotting only 1 profile 
-#weekly_mean = np.nanmean(sliced_3d_array,axis=0)[:,]
+#weekly_mean = np.nanmean(sliced_3d_array,axis=0)[:,0] #select the right profiles creating the right mask 
 
 
-plt.figure()
-if np.max(weekly_mean) > 0 : 
-    plt.plot(weekly_mean/np.max(weekly_mean), label="Mean weekly profile", c="orange")
-else:
-    plt.plot(np.zeros(weekly_mean.shape[0]), label="Mean weekly profile", c="orange")
-tick_labels = ['Sunday','Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+plt.figure(figsize=(6,5))
+plt.plot(1000*weekly_mean)
+plt.plot(1000*weekly_mean_overall, label="Profil hebdomadaire moyen", c="blue", linewidth=5, alpha=0.6)
+tick_labels = ['Dimanche','Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi']
 tick_positions = [i*96 +96/2 for i in range(7)]
 plt.xticks(tick_positions, tick_labels, rotation=45)
 
-plt.xlabel("Days of the week")
-plt.ylabel("Relative load [-]")
-plt.legend()
-plt.title("Generic week")
+plt.xlabel("Jours de la semaine")
+plt.ylabel("charge [$W_{el}/m^2$]")
+plt.legend(df.columns.tolist() + ["Profil moyen"], bbox_to_anchor=(1.05, 1), loc='upper left', title="Clients")
+plt.title("Semaine type")
 plt.grid()
 plt.show()
+
 
 #%% Generic year plot 
 
@@ -370,4 +364,28 @@ for typo in Typo_list:
 
 """
 
+#%%
+"""
+
+
+data = df.iloc[:,0]
+plt.plot(data[1000:1344])
+plt.show()
+
+# Calculate the 25th, 50th (median), and 75th percentiles
+p5 = np.percentile(data, 5)
+p50 = np.percentile(data, 50)  # Equivalent to np.median(data)
+p75 = np.percentile(data, 75)
+p98 = np.percentile(data, 98)
+
+# Plot histogram
+plt.hist(data, bins=30, density=True)
+# Plot vertical lines
+plt.axvline(x=p5, color='r', linestyle='--')  # Vertical line at x=2
+plt.axvline(x=p98, color='g', linestyle=':')   # Vertical line at x=4
+
+plt.title('Histogram of Data')
+plt.xlabel('Value')
+plt.ylabel('Frequency')
+plt.show()"""
 

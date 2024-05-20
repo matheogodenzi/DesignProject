@@ -31,7 +31,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Apems"
 Period = "day"
 
 # smoothing calculations
@@ -94,7 +94,7 @@ df = Loads.astype(np.longdouble)
 
 # Remove duplicate indices
 #df_no_duplicates = df[~df.index.duplicated(keep='first')]
-baseloads = get_baseload_2(df)
+baseloads = 4*get_baseload_2(df) #going from kWh/15'/m2 to kW/m2
 
 #print(df[df.index.duplicated()]) # duplicates come from time change 
 df = 1000*baseloads
@@ -115,7 +115,7 @@ for i, column in enumerate(df.columns):
     #if i in [2, 4, 9, 11, 14]:
             #plt.ylim(0.0002, 0.0030)
         
-            plt.ylim(-0.8, 0.8)
+            plt.ylim(-5, 4)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -127,7 +127,7 @@ for i, column in enumerate(df.columns):
     
             X = np.array(infra.index).reshape(-1, 1)   # Independent variable
             #print(X)
-            y = 4*infra.values.reshape(-1, 1)# factor 4 to go from kWh/15'/m2 to kW/m2
+            y = infra.values.reshape(-1, 1)# factor 4 to go from kWh/15'/m2 to kW/m2
             
             
             # Fit linear regression model
@@ -161,7 +161,7 @@ for i, column in enumerate(df.columns):
 #plt.yscale("log")
 plt.title("Evolution de la charge de base")
 # Place legend outside the plot
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Clients")
 plt.grid(which='both')
 plt.tight_layout()
 plt.show()
@@ -224,10 +224,10 @@ for i, column in enumerate(result.columns):
     #if i in [2, 6,12]:
     
             if column == "E202" or column == "E301":
-                mean = 1000*4*(baseloads[column].tail(365).values)
+                mean = 1000*(baseloads[column].tail(365).values)
                 plt.plot(mean, color=my_colors[i], label=column)
             else : 
-                mean = 1000*4*(baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
+                mean = 1000*(baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
                 plt.plot(mean, color=my_colors[i], label=column)
 
             print(f"{column} : {np.max(mean)/np.min(mean)}")
@@ -238,7 +238,7 @@ plt.grid(which="both", alpha=0.5)
 plt.xlabel("Jours de l'année")
 plt.ylabel("Charge de base - [$W_{el}/m^2$]")
 plt.title("Profil annuel de la charge de base").set_position([0.55, 1])
-plt.legend(title= "Consommateurs", loc='upper left', bbox_to_anchor=(1, 1))
+plt.legend(title= "Clients", loc='upper left', bbox_to_anchor=(1, 1))
 #plt.legend()
 #plt.subplots_adjust(top=2)
 plt.show()
@@ -259,7 +259,7 @@ flierprops = dict(marker='*', markerfacecolor='b', markersize=4, linestyle='none
 boxplot = baseloads_av.boxplot(flierprops=flierprops)
 plt.scatter(range(1, len(baseloads_av.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
 plt.xticks(ticks=range(1, len(baseloads_av.columns) + 1), labels=baseloads_av.columns, rotation=45)
-plt.xlabel("Identifiants des consommateurs")
+plt.xlabel("Identifiants des clients")
 plt.ylabel("Charge [$W_{el}/m^2$]")
 plt.title("Distribution annuelle moyenne de la charge de base journalière")
 plt.grid(axis="x")
@@ -296,7 +296,7 @@ thresholds = [v/100*(ma-mi)+mi for v in [0, 20, 40, 60, 80, 100]]
 plt.xticks(np.arange(len(x)), x)
 plt.tick_params(axis='both', which='major', labelsize=9, rotation=45)
 plt.title("Variation annuelle de la charge de base")
-plt.xlabel("Identifiants des consommateurs")
+plt.xlabel("Identifiants des clients")
 plt.ylabel("Variation [%]")
 plt.grid(axis='y')
 
