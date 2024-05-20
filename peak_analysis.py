@@ -33,10 +33,15 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #print(Typo_loads)
 
 
-Typology = "Ecole"
-Loads = Typo_all_loads[Typology]
+Typology = ["Ecole"]
 
-df = Loads.astype(np.longdouble)
+#Loads = Typo_all_loads[Typology]
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+
+df = Loads_unique.astype(np.longdouble)
 
 #%%
 
@@ -164,7 +169,7 @@ anomalies_signi_label = None
 
 
 for j in range(sliced_3d_array.shape[2]):
-    plt.figure()
+    plt.figure(figsize=(6,5), dpi=300)
     
     # Plotting the data points
     for i in range(sliced_3d_array.shape[0]):
@@ -176,13 +181,16 @@ for j in range(sliced_3d_array.shape[2]):
         if i == 0:
             anomalies_mild_label = plt.scatter([], [], c="orange", label="Anomalies bénignes", alpha=0.7)
             anomalies_signi_label = plt.scatter([], [], c="red", label="Anomalies significatives", alpha=0.7)
-            percentile_5_label = plt.plot([], [], c="orange", label="$5^{ème}$ percentile")
+            
     # Plotting percentiles and median
     plt.plot(percentile_5[:,j], c="orange", label="$5^{ème}$ percentile")
-    plt.plot(median_depth[:, j], c="red", label="Mediane")
+    plt.plot(median_depth[:, j], c="red", label="Médiane")
     plt.plot(percentile_95[:,j], c="purple", label="$95^{ème}$ percentile")
-    
+    percentile_5_line, = plt.plot(percentile_5[:,j], c="orange", label="$5^{ème}$ percentile")
+    median_line, = plt.plot(median_depth[:, j], c="red", label="Médiane")
+    percentile_95_line, = plt.plot(percentile_95[:,j], c="purple", label="$95^{ème}$ percentile")
 
+    
 
     # Setting labels, legend, and grid
     plt.xticks(hour_ticks)
@@ -190,7 +198,8 @@ for j in range(sliced_3d_array.shape[2]):
     plt.xlabel("Heures de la journée")
     plt.ylabel("Charge [$kWh_{el}/m^2$]")
     plt.grid()
-    plt.legend(handles=[anomalies_mild_label, anomalies_signi_label])
+    plt.legend(handles=[anomalies_mild_label, anomalies_signi_label, percentile_5_line, median_line, percentile_95_line],
+               loc='center left', bbox_to_anchor=(1, 0.84))
     plt.show()
 
 #%% Counting the anomalies per category
@@ -208,10 +217,18 @@ count_ones, count_twos = count_occurrences(peak_anomaly_test)
 
 
 #%%Counting occurencies for all months
-Typology = "Ecole"
-Loads = Typo_all_loads[Typology]
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+Loads = Loads_unique
+df = Loads_unique.astype(np.longdouble)
 
-df = Loads.astype(np.longdouble)
+
+#Typology = "Commune"
+#Loads = Typo_all_loads[Typology]
+
+#df = Loads.astype(np.longdouble)
 
 # Initialize empty data frames to store results
 count_ones_df = pd.DataFrame(columns=range(1, 13))  # Months as columns
@@ -350,7 +367,7 @@ plt.grid(True)
 plt.show()"""
 
 # Plot count_twos_df
-plt.figure(figsize=(6, 5))
+plt.figure(figsize=(6, 5), dpi=300)
 for i, client in enumerate(count_twos_dfT.columns):
     plt.plot(count_twos_dfT.index, count_twos_dfT[client], label=Loads.columns[client-1], color=my_palette[client-1])
 plt.plot(avg_twos.index, avg_twos, label="Moyenne", color="blue", linewidth=5, alpha=0.5)
