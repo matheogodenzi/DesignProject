@@ -105,20 +105,39 @@ def get_mean_load_kW(df, period="week"):
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Culture"
+Typology = "Commune"
 Period = "day"
 
-#%%
 # smoothing calculations
 Loads = Typo_all_loads[Typology] 
 Loads_n = Typo_all_loads_n[Typology]
+#specific years if needed in kWel
+Loads_2022 = Typo_loads_2022[Typology]
+Loads_2023 = Typo_loads_2023[Typology]
+
+#%% Unique dataset total 
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+Loads = Loads_unique
+
+
+df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+
+
+Loads_buv_n = Typo_all_loads_n["Buvette"]
+Loads_sport_n = Typo_all_loads_n["Sport"]
+Loads_parking_n = Typo_all_loads_n["Parking"]
+Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n], axis=1)
+Loads_n = Loads_unique_n
+
+#%% Année type
+
 # Obtain a typical year averaged
 typical_year = f.typical_period(Loads,  "year")
 typical_year_n = f.typical_period(Loads_n,  "year")
 
-#specific years if needed in kWel
-Loads_2022 = Typo_loads_2022[Typology]
-Loads_2023 = Typo_loads_2023[Typology]
 
 # Replace zeros with NaN values
 """If you want to have both years instead of their average, change typical_year by Loads"""
@@ -159,7 +178,7 @@ plt.plot(1000*Daily_average_load_n.mean(1), color="blue", label="Profil moyen", 
 #plt.yscale("log")
 plt.grid()
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Clients")
-plt.title("Année type- " + Typology)
+plt.title("Année type")
 plt.xlabel("Semaines de l'année")
 plt.ylabel("Charge moyenne [$W_{el}/m^2$]")
 plt.show()
@@ -188,7 +207,7 @@ plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zor
 plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
 plt.xlabel("Identifiants des consommateurs")
 plt.ylabel("Charge [$kW_{el}$]")
-plt.title("Distribution annuelle de la charge journalière - Garderies")
+plt.title("Distribution annuelle de la charge journalière")
 plt.grid(axis="x")
 
 # Extracting the boxplot elements for creating legend
@@ -213,7 +232,7 @@ plt.scatter(range(1, len(df_n.columns) + 1), 1000*means_n, color='red', label='M
 plt.xticks(ticks=range(1, len(df_n.columns) + 1), labels=df_n.columns, rotation=45)
 plt.xlabel("Identifiants des consommateurs")
 plt.ylabel("Charge [$W_{el}/m^2$]")
-plt.title("Distribution annuelle de la charge journalière par $m^2$- Garderies")
+plt.title("Distribution annuelle de la charge journalière par $m^2$")
 plt.grid(axis="x")
 
 # Extracting the boxplot elements for creating legend
@@ -256,7 +275,7 @@ for i, column in enumerate(df.columns):
             #plt.ylim(0.0002, 0.002)
     #if i in [2, 6,12]:
         
-            plt.ylim(-2.5, 4)
+            plt.ylim(-6, 10)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -303,9 +322,9 @@ for i, column in enumerate(df.columns):
 
 #plt.ylim(0, 3e-12)
 #plt.yscale("log")
-plt.title("Profile d'évolution de la consommation - "+ Typology)
+plt.title("Profil d'évolution de la consommation")
 # Place legend outside the plot
-plt.legend(title="Etablissements", bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.legend(title="Clients", bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.grid(which='both')
 #plt.tight_layout()
 plt.show()
@@ -340,7 +359,7 @@ for i, column in enumerate(df.columns):
             #plt.ylim(0.0002, 0.002)
     #if i in [2, 6,12]:
         
-            plt.ylim(-2, 6)
+            plt.ylim(-5, 5)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -388,9 +407,9 @@ for i, column in enumerate(df.columns):
 
 #plt.ylim(0, 3e-12)
 #plt.yscale("log")
-plt.title("Profile d'évolution de la consommation - "+ Typology)
+plt.title("Profil d'évolution de la consommation")
 # Place legend outside the plot
-plt.legend(title="Etablissements", bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.legend(title="Clients", bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.grid(which='both')
 #plt.tight_layout()
 plt.show()

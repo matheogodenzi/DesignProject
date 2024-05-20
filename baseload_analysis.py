@@ -10,9 +10,9 @@ Created on Fri Apr 12 14:30:43 2024
 import numpy as np 
 import matplotlib.pyplot as plt 
 import pandas as pd
-import seaborn as sb
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
+import matplotlib as mpl
 
 """functions imports"""
 
@@ -31,7 +31,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Apems"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
@@ -97,7 +97,7 @@ df = Loads.astype(np.longdouble)
 baseloads = 4*get_baseload_2(df) #going from kWh/15'/m2 to kW/m2
 
 #print(df[df.index.duplicated()]) # duplicates come from time change 
-df = 1000*baseloads
+df = 1000*baseloads #W/m2
 
 # Define your color palette
 palette = sns.color_palette("hls", df.shape[1])
@@ -115,7 +115,7 @@ for i, column in enumerate(df.columns):
     #if i in [2, 4, 9, 11, 14]:
             #plt.ylim(0.0002, 0.0030)
         
-            plt.ylim(-5, 4)
+            #plt.ylim(-0.75, 0.75)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -223,7 +223,7 @@ for i, column in enumerate(result.columns):
             #plt.ylim(0.00005, 0.0005)
     #if i in [2, 6,12]:
     
-            if column == "E202" or column == "E301":
+            if column == "V330" or column == "E202" or column == "E301":
                 mean = 1000*(baseloads[column].tail(365).values)
                 plt.plot(mean, color=my_colors[i], label=column)
             else : 
@@ -245,11 +245,19 @@ plt.show()
 
 #%% smoothing calculations
 
+# Reset all rc settings to default
+mpl.rcdefaults()
 
 # Calculate mean for each column
 
 average_array = 1000*(baseloads.iloc[:365,:].values+baseloads.iloc[365:,:].values)/2 #Wel/m2
 baseloads_av = pd.DataFrame(average_array, columns=baseloads.columns)
+
+for i, column in enumerate(baseloads_av.columns):
+    
+            if column == "V330" or column == "E202" or column == "E301":
+                baseloads_av[column] = 1000*(baseloads[column].tail(365).values)
+
 means = baseloads_av.mean(axis=0)
 
 # Plot boxplot for aboslute values
@@ -276,7 +284,6 @@ plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', lin
 
 plt.show()
 
-#%% Relative tendency differences between consumers 
 
 y = np.array(relative_slope)
 x = df.columns

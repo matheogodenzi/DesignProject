@@ -31,7 +31,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%%
 
 # parameters to change
-Typology = "Culture"
+Typology = "Commune"
 Period = "day"
 
 
@@ -45,6 +45,18 @@ Loads = Typo_loads_2023[Typology]
 
 df = 4*Loads.astype(np.longdouble) #kWel
 
+#%% Unique dataset
+my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
+
+
+Loads_buv = Typo_loads_2023["Buvette"]
+Loads_sport = Typo_loads_2023["Sport"]
+Loads_parking = Typo_loads_2023["Parking"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+Loads = Loads_unique
+df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+
+mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=my_colors)
 
 #%% Generic day
 
@@ -93,7 +105,7 @@ for desired_month in range(1, 13):
     
     #if plotting only 1 profile 
     #daily_mean_overall = sliced_3d_array[2,:,0] # [weekday, profile,client]
-    daily_mean_overall = sliced_3d_array.mean(axis=0)[:,1]
+    daily_mean_overall = sliced_3d_array.mean(axis=0)[:,0]
    
     
     Overall_means.append(daily_mean_overall)
@@ -201,6 +213,7 @@ Loads = Typo_loads_2023[Typology]
 
 df = 4*Loads.astype(np.longdouble) #kWel
 
+#%%
 #df_nan = df.replace(0, np.nan)
 df.index = pd.to_datetime(df.index)
 
