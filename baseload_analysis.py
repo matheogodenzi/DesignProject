@@ -46,6 +46,13 @@ Loads_2023 = Typo_loads_2023[Typology]
 
 my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 
+#%% Unique dataset
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+Loads = Loads_unique
+df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%%
 def get_baseload_2(df):
@@ -115,7 +122,7 @@ for i, column in enumerate(df.columns):
     #if i in [2, 4, 9, 11, 14]:
             #plt.ylim(0.0002, 0.0030)
         
-            #plt.ylim(-0.75, 0.75)
+            plt.ylim(-5, 6)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -172,9 +179,11 @@ plt.show()
 # smoothing calculations
 Loads = Typo_all_loads[Typology]
 
+#%%
 num_rows = baseloads.shape[0]
 chunk_size = 7 # if 7 > week, if 30 > month-ish 
 df = baseloads 
+
 
 averages = []
 # Iterate over the DataFrame in chunks of 96 rows
@@ -223,7 +232,7 @@ for i, column in enumerate(result.columns):
             #plt.ylim(0.00005, 0.0005)
     #if i in [2, 6,12]:
     
-            if column == "V330" or column == "E202" or column == "E301":
+            if column == "V330" or column == "E202" or column == "E301" or column=="B140":
                 mean = 1000*(baseloads[column].tail(365).values)
                 plt.plot(mean, color=my_colors[i], label=column)
             else : 
@@ -255,7 +264,7 @@ baseloads_av = pd.DataFrame(average_array, columns=baseloads.columns)
 
 for i, column in enumerate(baseloads_av.columns):
     
-            if column == "V330" or column == "E202" or column == "E301":
+            if column == "V330" or column == "E202" or column == "E301" or column=="B140":
                 baseloads_av[column] = 1000*(baseloads[column].tail(365).values)
 
 means = baseloads_av.mean(axis=0)
