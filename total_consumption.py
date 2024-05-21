@@ -105,7 +105,7 @@ def get_mean_load_kW(df, period="week"):
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Commune"
+Typology = "Apems"
 Period = "day"
 
 # smoothing calculations

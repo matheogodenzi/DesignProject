@@ -50,7 +50,7 @@ def plot_load_series(df, area):
     #df = df.set_index('Date')
     normalized_load = df['Charge [kW]'].copy()/area
     plt.figure(figsize=(10, 6))
-    plt.plot(df.index, normalized_load, marker='o', linestyle='-')
+    plt.bar(df.index, normalized_load)
     plt.title('Charge électrique moyenne annuelle')
     plt.xlabel("Jours de l'année")
     plt.ylabel('Charge électrique [$kW/m^2$]')
