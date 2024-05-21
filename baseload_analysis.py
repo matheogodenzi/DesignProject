@@ -10,9 +10,9 @@ Created on Fri Apr 12 14:30:43 2024
 import numpy as np 
 import matplotlib.pyplot as plt 
 import pandas as pd
-import seaborn as sb
 import seaborn as sns
 from sklearn.linear_model import LinearRegression
+import matplotlib as mpl
 
 """functions imports"""
 
@@ -31,7 +31,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
@@ -46,6 +46,13 @@ Loads_2023 = Typo_loads_2023[Typology]
 
 my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 
+#%% Unique dataset
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+Loads = Loads_unique
+df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%%
 def get_baseload_2(df):
@@ -94,10 +101,10 @@ df = Loads.astype(np.longdouble)
 
 # Remove duplicate indices
 #df_no_duplicates = df[~df.index.duplicated(keep='first')]
-baseloads = get_baseload_2(df)
+baseloads = 4*get_baseload_2(df) #going from kWh/15'/m2 to kW/m2
 
 #print(df[df.index.duplicated()]) # duplicates come from time change 
-df = 1000*baseloads
+df = 1000*baseloads #W/m2
 
 # Define your color palette
 palette = sns.color_palette("hls", df.shape[1])
@@ -115,7 +122,7 @@ for i, column in enumerate(df.columns):
     #if i in [2, 4, 9, 11, 14]:
             #plt.ylim(0.0002, 0.0030)
         
-            plt.ylim(-0.8, 0.8)
+            plt.ylim(-5, 6)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -127,7 +134,7 @@ for i, column in enumerate(df.columns):
     
             X = np.array(infra.index).reshape(-1, 1)   # Independent variable
             #print(X)
-            y = 4*infra.values.reshape(-1, 1)# factor 4 to go from kWh/15'/m2 to kW/m2
+            y = infra.values.reshape(-1, 1)# factor 4 to go from kWh/15'/m2 to kW/m2
             
             
             # Fit linear regression model
@@ -161,7 +168,7 @@ for i, column in enumerate(df.columns):
 #plt.yscale("log")
 plt.title("Evolution de la charge de base")
 # Place legend outside the plot
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Etablissements")
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Clients")
 plt.grid(which='both')
 plt.tight_layout()
 plt.show()
@@ -172,9 +179,11 @@ plt.show()
 # smoothing calculations
 Loads = Typo_all_loads[Typology]
 
+#%%
 num_rows = baseloads.shape[0]
 chunk_size = 7 # if 7 > week, if 30 > month-ish 
 df = baseloads 
+
 
 averages = []
 # Iterate over the DataFrame in chunks of 96 rows
@@ -223,11 +232,11 @@ for i, column in enumerate(result.columns):
             #plt.ylim(0.00005, 0.0005)
     #if i in [2, 6,12]:
     
-            if column == "E202" or column == "E301":
-                mean = 1000*4*(baseloads[column].tail(365).values)
+            if column == "V330" or column == "E202" or column == "E301" or column=="B140":
+                mean = 1000*(baseloads[column].tail(365).values)
                 plt.plot(mean, color=my_colors[i], label=column)
             else : 
-                mean = 1000*4*(baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
+                mean = 1000*(baseloads[column].head(365).values + baseloads[column].tail(365).values) / 2
                 plt.plot(mean, color=my_colors[i], label=column)
 
             print(f"{column} : {np.max(mean)/np.min(mean)}")
@@ -238,18 +247,26 @@ plt.grid(which="both", alpha=0.5)
 plt.xlabel("Jours de l'année")
 plt.ylabel("Charge de base - [$W_{el}/m^2$]")
 plt.title("Profil annuel de la charge de base").set_position([0.55, 1])
-plt.legend(title= "Consommateurs", loc='upper left', bbox_to_anchor=(1, 1))
+plt.legend(title= "Clients", loc='upper left', bbox_to_anchor=(1, 1))
 #plt.legend()
 #plt.subplots_adjust(top=2)
 plt.show()
 
 #%% smoothing calculations
 
+# Reset all rc settings to default
+mpl.rcdefaults()
 
 # Calculate mean for each column
 
 average_array = 1000*(baseloads.iloc[:365,:].values+baseloads.iloc[365:,:].values)/2 #Wel/m2
 baseloads_av = pd.DataFrame(average_array, columns=baseloads.columns)
+
+for i, column in enumerate(baseloads_av.columns):
+    
+            if column == "V330" or column == "E202" or column == "E301" or column=="B140":
+                baseloads_av[column] = 1000*(baseloads[column].tail(365).values)
+
 means = baseloads_av.mean(axis=0)
 
 # Plot boxplot for aboslute values
@@ -259,7 +276,7 @@ flierprops = dict(marker='*', markerfacecolor='b', markersize=4, linestyle='none
 boxplot = baseloads_av.boxplot(flierprops=flierprops)
 plt.scatter(range(1, len(baseloads_av.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
 plt.xticks(ticks=range(1, len(baseloads_av.columns) + 1), labels=baseloads_av.columns, rotation=45)
-plt.xlabel("Identifiants des consommateurs")
+plt.xlabel("Identifiants des clients")
 plt.ylabel("Charge [$W_{el}/m^2$]")
 plt.title("Distribution annuelle moyenne de la charge de base journalière")
 plt.grid(axis="x")
@@ -276,7 +293,6 @@ plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', lin
 
 plt.show()
 
-#%% Relative tendency differences between consumers 
 
 y = np.array(relative_slope)
 x = df.columns
@@ -296,7 +312,7 @@ thresholds = [v/100*(ma-mi)+mi for v in [0, 20, 40, 60, 80, 100]]
 plt.xticks(np.arange(len(x)), x)
 plt.tick_params(axis='both', which='major', labelsize=9, rotation=45)
 plt.title("Variation annuelle de la charge de base")
-plt.xlabel("Identifiants des consommateurs")
+plt.xlabel("Identifiants des clients")
 plt.ylabel("Variation [%]")
 plt.grid(axis='y')
 
