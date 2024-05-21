@@ -105,7 +105,7 @@ def get_mean_load_kW(df, period="week"):
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Apems"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -115,22 +115,24 @@ Loads_n = Typo_all_loads_n[Typology]
 Loads_2022 = Typo_loads_2022[Typology]
 Loads_2023 = Typo_loads_2023[Typology]
 
+print(Loads.sum(axis=0))
+
 #%% Unique dataset total 
-Loads_buv = Typo_all_loads["Buvette"]
-Loads_sport = Typo_all_loads["Sport"]
-Loads_parking = Typo_all_loads["Parking"]
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
-Loads = Loads_unique
+# Loads_buv = Typo_all_loads["Buvette"]
+# Loads_sport = Typo_all_loads["Sport"]
+# Loads_parking = Typo_all_loads["Parking"]
+# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+# Loads = Loads_unique
 
 
-df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+# df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 
-Loads_buv_n = Typo_all_loads_n["Buvette"]
-Loads_sport_n = Typo_all_loads_n["Sport"]
-Loads_parking_n = Typo_all_loads_n["Parking"]
-Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n], axis=1)
-Loads_n = Loads_unique_n
+# Loads_buv_n = Typo_all_loads_n["Buvette"]
+# Loads_sport_n = Typo_all_loads_n["Sport"]
+# Loads_parking_n = Typo_all_loads_n["Parking"]
+# Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n], axis=1)
+# Loads_n = Loads_unique_n
 
 #%% Année type
 
@@ -359,7 +361,7 @@ for i, column in enumerate(df.columns):
             #plt.ylim(0.0002, 0.002)
     #if i in [2, 6,12]:
         
-            plt.ylim(-5, 5)
+            plt.ylim(-2, 5)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
