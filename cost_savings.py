@@ -81,7 +81,7 @@ def get_baseload_2(df):
 
 #%% 
 # parameters to change
-Typology = "Ecole"
+Typology = "Culture"
 Period = "day"
 
 # smoothing calculations
@@ -165,9 +165,9 @@ def calculate_peak_economies(df, max_values_df, factor=0.8):
 # Usage:
 peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor =0.8)
 energy_economies = peak_economies.mean(0)*365*24 #kWh/an/m2 (si normalisation préalable)
-plt.bar(Loads.columns, energy_economies)
-plt.xticks(rotation=45)
-plt.show()
+#plt.bar(Loads.columns, energy_economies)
+#plt.xticks(rotation=45)
+#plt.show()
 
 #%% Computing cost savings related to the energy savings
 # savings from reducing the monthly maximum load
@@ -177,7 +177,7 @@ def calculate_load_shifting(max_values_df, min_factor=0.9):
     load_shifting_df = pd.DataFrame()
     
     # Iterate over factor values from 1 to 0.9 in 10 intervals
-    for factor in np.linspace(1, min_factor, 10):
+    for factor in np.linspace(1, min_factor, 20):
         # Calculate savings
         save_factor = 1 - factor
         max_value_savings = max_values_df * save_factor
@@ -234,18 +234,18 @@ def calculate_financial_savings(peak_economies, HP_cost=8.44, HC_cost=2.6):
 
 #%%
 # parameters to change
-Typology = "Apems"
+Typology = "Commune"
 Period = "day"
-"""
+
 Loads_buv = Typo_all_loads["Buvette"]
 Loads_sport = Typo_all_loads["Sport"]
 Loads_parking = Typo_all_loads["Parking"]
 Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
 Loads = Loads_unique
 df = Loads_unique.astype(np.longdouble)
-"""
+
 # smoothing calculations
-Loads = 1* Typo_all_loads[Typology] # conversion to [kW] if factor = 4, else kWh/quart d'heure
+#Loads = 1* Typo_all_loads[Typology] # conversion to [kW] if factor = 4, else kWh/quart d'heure
 
 Loads_copy = Loads.copy()
 
@@ -261,13 +261,13 @@ df = Loads_last_year.astype(np.longdouble)
 
 dfkW = 4 * df
 
-#%% financial savings for varying factor of saving
-load_shifting_df = calculate_load_shifting(calculate_max_values(dfkW), min_factor=0.9) # has to be in kW
+### financial savings for varying factor of saving
+load_shifting_df = calculate_load_shifting(calculate_max_values(dfkW), min_factor=0.8) # has to be in kW
 
 annual_financial_savings = calculate_financial_savings(peak_economies)
 financial_savings_list = []
 
-for factor in np.linspace(1,0.8,10):
+for factor in np.linspace(1,0.8,20):
     peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor)
     financial_savings_list.append(calculate_financial_savings(peak_economies))
 
@@ -277,11 +277,11 @@ my_colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '
 load_shifting_df.columns = financial_savings_df.columns
 
 total_financial_savings_df = financial_savings_df.add(load_shifting_df)
-
+"""
 # PUISSANCE
 plt.figure(figsize=(6, 5), dpi=300)
 for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
-    plt.plot(np.linspace(0, 10, 10),load_shifting_df[column], color=my_colors[i])
+    plt.plot(np.linspace(0, 20, 20),load_shifting_df[column], color=my_colors[i])
 #plt.yscale("log")
 plt.title('Economies financières par écrêtement des pointes (Puissance)')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
@@ -295,7 +295,7 @@ plt.show()
 # ENERGIE
 plt.figure(figsize=(6, 5), dpi=300)
 for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
-    plt.plot(np.linspace(0, 10, 10),financial_savings_df[column], color=my_colors[i])
+    plt.plot(np.linspace(0, 20, 20),financial_savings_df[column], color=my_colors[i])
 #plt.yscale("log")
 plt.title('Economies financières par écrêtement des pointes (Energie)')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
@@ -305,12 +305,12 @@ plt.locator_params(axis='y', nbins=10)
 plt.legend(Loads.columns)
 plt.grid(axis='y')
 plt.show()
-
+"""
 
 # TOTAL
 plt.figure(figsize=(6, 5), dpi=300)
 for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
-    plt.plot(np.linspace(0, 10, 10),total_financial_savings_df[column], color=my_colors[i])
+    plt.plot(np.linspace(0, 20, 20),total_financial_savings_df[column], color=my_colors[i])
 #plt.yscale("log")
 plt.title('Economies financières par écrêtement des pointes (Total)')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
@@ -321,27 +321,8 @@ plt.legend(Loads.columns)
 plt.grid(axis='y')
 plt.show()
 
-#%% illustrative example of peak shaving 
-palette = sb.color_palette("hls", 13)
 
-peak_economies, df_shaved = calculate_peak_economies(dfkW, calculate_max_values(dfkW), factor=0.9)
-slct_cons = 'E302'
-
-plt.figure(dpi=300)
-plt.plot(dfkW[slct_cons], color=palette[0])
-plt.plot(df_shaved[slct_cons], color='royalblue')
-plt.legend(["Ecrêtement 10%","Charge restante"], loc='center left', bbox_to_anchor=(1, 0.84))
-# Format x-axis ticks to display only the month
-plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%W'))
-plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
-
-plt.tick_params(axis='both', which='major', labelsize=9)
-plt.xlabel("Semaine")
-plt.ylabel("Charge - [$kW_{el}/m^2$]")
-#plt.title("Illustration de l'écrêtement des pointes")
-plt.show()
-
-#%% peak shaving with load reduction
+###peak shaving with load reduction
 
 ### ATTENTION garder Loads en kWh/quart d'heure
 def calculate_energy_economies(df, max_values_df):
@@ -349,7 +330,7 @@ def calculate_energy_economies(df, max_values_df):
     energy_economies_list = []
     
     # Iterate over the factors from 0.9 to 0.4 with 10 intervals
-    for factor in np.linspace(1, 0.9, 10):
+    for factor in np.linspace(1, 0.8, 20):
         # Apply peak shaving with the current factor
         
         peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor)
@@ -360,7 +341,7 @@ def calculate_energy_economies(df, max_values_df):
     energy_economies_df = pd.DataFrame(energy_economies_list)
     return energy_economies_df
 
-#%% 
+
 energy_economies_df = calculate_energy_economies(df, calculate_max_values(df))
 
 my_colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
@@ -368,7 +349,7 @@ my_colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '
 # Plot the energy economies for each factor
 plt.figure(figsize=(6, 5), dpi=300)
 for i, column in enumerate(energy_economies_df.columns):
-    plt.plot(np.linspace(0, 10, 10),energy_economies_df[column], color=my_colors[i])
+    plt.plot(np.linspace(0, 20, 20),energy_economies_df[column], color=my_colors[i])
 #plt.yscale("log")
 plt.title('Economies énergétiques par écrêtement des pointes')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
@@ -378,93 +359,23 @@ plt.legend(Loads.columns)
 plt.grid(axis='y')
 plt.show()
 
+#%% illustrative example of peak shaving 
+palette = sb.color_palette("hls", 13)
 
+peak_economies, df_shaved = calculate_peak_economies(dfkW, calculate_max_values(dfkW), factor=0.8)
+slct_cons = 'S280'
 
+plt.figure(dpi=300)
+plt.plot(dfkW[slct_cons], color=palette[0])
+plt.plot(df_shaved[slct_cons], color='royalblue')
+plt.legend(["Ecrêtement 20%","Charge restante"], loc='center left', bbox_to_anchor=(1, 0.84))
+# Format x-axis ticks to display only the month
+plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%W'))
+plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
 
-
-#%%
-"""
-#%%Baseload savings v2 ###### plus d'actualité
-#print(df[df.index.duplicated()])
-
-# Remove duplicate indices
-df_no_duplicates = df[~df.index.duplicated(keep='first')]
-
-baseloads = get_baseload_2(df_no_duplicates)
-
-baseloads.replace(0, np.nan, inplace=True)
-
-baseload_min= np.min(baseloads, axis=1)
-
-baseload_avg = np.mean(baseloads, axis=1)
-
-baseload_savings = baseload_min.copy()
-
-# output in kW/m2 of energy savings
-for i, column in enumerate(baseloads.columns):
-    if baseload_min[i] > baseload_avg:
-        # dragging the big consumers towards average value
-        baseload_savings.iloc[i,:] = baseload_min[i] - baseload_avg
-    else:
-        # dragging lower consumers to best in class
-        baseload_savings.iloc[i,:] = baseload_min[i] - baseload_min_min
-    
-
-Now we have the baseloads, we want to compute how much savings by
-a reduction of that baseload by a given percentage
-
-
-
-plt.bar(Loads.columns, baseload_savings)
-
-
-#%%Baseload savings
-#print(df[df.index.duplicated()])
-
-# Remove duplicate indices
-df_no_duplicates = df[~df.index.duplicated(keep='first')]
-
-baseloads = get_baseload_2(df_no_duplicates)
-
-baseloads.replace(0, np.nan, inplace=True)
-
-baseload_min= np.min(baseloads, axis=0)
-
-baseload_min_min = np.min(baseload_min)
-
-baseload_avg = np.mean(baseload_min)
-
-baseload_savings = baseload_min.copy()
-
-# output in kW/m2 of energy savings
-for i in range(baseloads.shape[1]):
-    if baseload_min[i] > baseload_avg:
-        # dragging the big consumers towards average value
-        baseload_savings.iloc[i,:] = baseload_min[i] - baseload_avg
-    else:
-        # dragging lower consumers to best in class
-        baseload_savings.iloc[i,:] = baseload_min[i] - baseload_min_min
-    
-
-Now we have the baseloads, we want to compute how much savings by
-a reduction of that baseload by a given percentage
-
-
-
-plt.bar(Loads.columns, baseload_savings)
-
-#%%
-my_colors = sb.color_palette("hls", baseloads.shape[1])
-plt.figure()
-plt.figure()
-for i, column in enumerate(baseloads.columns):
-    plt.plot(baseloads[column], color=my_colors[i])
-plt.axhline(y=baseload_avg, color='red', linestyle='--', label='Average baseload')
-plt.axhline(y=baseload_min_min, color='blue', linestyle='--', label='Minimum baseload')
-plt.ylabel('Load - [$kW_{el}/m^2$]')
-plt.xlabel('Days of the year')
-plt.legend()
+plt.tick_params(axis='both', which='major', labelsize=9)
+plt.xlabel("Semaine")
+plt.ylabel("Charge - [$kW_{el}/m^2$]")
+#plt.title("Illustration de l'écrêtement des pointes")
 plt.show()
-
-"""
 
