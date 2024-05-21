@@ -33,15 +33,15 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #print(Typo_loads)
 
 
-Typology = ["Ecole"]
+Typology = "Culture"
 
-#Loads = Typo_all_loads[Typology]
+Loads = Typo_all_loads[Typology]
 Loads_buv = Typo_all_loads["Buvette"]
 Loads_sport = Typo_all_loads["Sport"]
 Loads_parking = Typo_all_loads["Parking"]
 Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
 
-df = Loads_unique.astype(np.longdouble)
+df = Loads.astype(np.longdouble)
 
 #%%
 
@@ -221,8 +221,11 @@ Loads_buv = Typo_all_loads["Buvette"]
 Loads_sport = Typo_all_loads["Sport"]
 Loads_parking = Typo_all_loads["Parking"]
 Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
-Loads = Loads_unique
-df = Loads_unique.astype(np.longdouble)
+Loads = Typo_all_loads["Apems"]
+#Loads = Loads_unique
+
+
+df = Loads.astype(np.longdouble)
 
 
 #Typology = "Commune"
@@ -319,7 +322,7 @@ plt.xticks(rotation=45)
 # Displaying the plot
 plt.show()
 """
-#%% sum of mild and significant anomalies for each customer
+### sum of mild and significant anomalies for each customer
 total_mild_occurences = count_ones_dfT.sum(axis=0)
 total_sign_occurences = count_twos_dfT.sum(axis=0)
 
@@ -340,7 +343,7 @@ plt.xticks(rotation=45)
 # Displaying the plot
 plt.show()
 
-#%% Computing the averages
+### plotting the occurences
 avg_ones = np.nanmean(count_ones_dfT, axis=1)
 avg_twos = np.nanmean(count_twos_dfT, axis=1)
 avg_twos = pd.Series(avg_twos)
@@ -348,7 +351,7 @@ avg_twos = pd.Series(avg_twos)
 # Ensure avg_twos has the correct index
 avg_twos.index = range(1, len(avg_twos) + 1)
 print(avg_twos.index)
-#%% plotting the occurences
+
 my_palette = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 # Generate HLS color palette with 13 colors
 hls_palette = sb.color_palette("hls", Loads.shape[1])
@@ -369,7 +372,7 @@ plt.show()"""
 # Plot count_twos_df
 plt.figure(figsize=(6, 5), dpi=300)
 for i, client in enumerate(count_twos_dfT.columns):
-    plt.plot(count_twos_dfT.index, count_twos_dfT[client], label=Loads.columns[client-1], color=my_palette[client-1])
+    plt.plot(count_twos_dfT.index, count_twos_dfT[client], label=Loads.columns[client], color=my_palette[client])
 plt.plot(avg_twos.index, avg_twos, label="Moyenne", color="blue", linewidth=5, alpha=0.5)
 plt.title('Occurrences mensuelles des anomalies significatives')
 plt.xlabel('Mois')
