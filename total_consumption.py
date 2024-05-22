@@ -105,7 +105,7 @@ def get_mean_load_kW(df, period="week"):
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Commune"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -115,22 +115,24 @@ Loads_n = Typo_all_loads_n[Typology]
 Loads_2022 = Typo_loads_2022[Typology]
 Loads_2023 = Typo_loads_2023[Typology]
 
+print(Loads.sum(axis=0))
+
 #%% Unique dataset total 
-Loads_buv = Typo_all_loads["Buvette"]
-Loads_sport = Typo_all_loads["Sport"]
-Loads_parking = Typo_all_loads["Parking"]
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
-Loads = Loads_unique
+# Loads_buv = Typo_all_loads["Buvette"]
+# Loads_sport = Typo_all_loads["Sport"]
+# Loads_parking = Typo_all_loads["Parking"]
+# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+# Loads = Loads_unique
 
 
-df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+# df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 
-Loads_buv_n = Typo_all_loads_n["Buvette"]
-Loads_sport_n = Typo_all_loads_n["Sport"]
-Loads_parking_n = Typo_all_loads_n["Parking"]
-Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n], axis=1)
-Loads_n = Loads_unique_n
+# Loads_buv_n = Typo_all_loads_n["Buvette"]
+# Loads_sport_n = Typo_all_loads_n["Sport"]
+# Loads_parking_n = Typo_all_loads_n["Parking"]
+# Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n], axis=1)
+# Loads_n = Loads_unique_n
 
 #%% Année type
 
@@ -359,7 +361,7 @@ for i, column in enumerate(df.columns):
             #plt.ylim(0.0002, 0.002)
     #if i in [2, 6,12]:
         
-            plt.ylim(-5, 5)
+            plt.ylim(-2, 5)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -418,23 +420,23 @@ coef_df_n.index = df.columns
 #%% plotting scores 
 
 #y for trends 
-# y = np.array(relative_slope)*100*365
+#y = np.array(relative_slope)*100*365
 
-# #y for mean values 
-# df_nan = typical_year.replace(0, np.nan)
-# Daily_average_load = get_mean_load_kW(df_nan) #kW
-# Dailymeans = Daily_average_load.mean()
-# y = Dailymeans.values
+#y for mean values 
+df_nan = typical_year.replace(0, np.nan)
+Daily_average_load = get_mean_load_kW(df_nan) #kW
+Dailymeans = Daily_average_load.mean()
+y = Dailymeans.values
 
-#y for mean values normalized
+# #y for mean values normalized
 # df_nan_n = typical_year_n.replace(0, np.nan)
-# Daily_average_load_n = get_mean_load_kW(df_nan_n) # kW/m2
+# Daily_average_load_n = 1000*get_mean_load_kW(df_nan_n) # W/m2
 # Dailymeans_n = Daily_average_load_n.mean()
 # y = Dailymeans_n.values
 
-"""Le pourcentage de variation est le même indépendemment de la normalisation"""
-y = 100*365*np.array(relative_slope)
-#y = 100*365*np.array(relative_slope_n)
+# """Le pourcentage de variation est le même indépendemment de la normalisation"""
+# y = 100*365*np.array(relative_slope)
+# #y = 100*365*np.array(relative_slope_n)
 
 print(y)
 x= coef_df.index
@@ -459,19 +461,19 @@ plt.show()
 plt.figure(figsize=(6,5))
 for i, (k, v) in enumerate(classes.items()):
     if v == 1:
-        plt.bar(i,v, color="green")
+        plt.bar(i,v, color="darkgreen")
     elif v == 2:
-        plt.bar(i,v, color="yellow")
+        plt.bar(i,v, color="lightgreen")
     elif v == 3:
-        plt.bar(i,v, color="orange")
+        plt.bar(i,v, color="yellow")
     elif v == 4:
-        plt.bar(i,v, color="red" )
+        plt.bar(i,v, color="orange" )
     elif v == 5:
-        plt.bar(i,v, color="purple")
+        plt.bar(i,v, color="red")
     else:
         plt.bar(i, v, color="blue")
 plt.grid(axis='y')
-plt.xticks(range(len(x)), x)
+plt.xticks(range(len(x)), x, rotation=45)
 plt.show()
 #%% Previous code 
 """

@@ -20,6 +20,7 @@ import functions as f
 import process_data as p
 
 
+
 #%% data acquisition
 #True> total load, if False > only SIE load (without PV)
 LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.get_load_curves(False)
@@ -31,7 +32,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Commune"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -47,12 +48,12 @@ Loads_2023 = Typo_loads_2023[Typology]
 my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 
 #%% Unique dataset
-Loads_buv = Typo_all_loads["Buvette"]
-Loads_sport = Typo_all_loads["Sport"]
-Loads_parking = Typo_all_loads["Parking"]
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
-Loads = Loads_unique
-df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+# Loads_buv = Typo_all_loads["Buvette"]
+# Loads_sport = Typo_all_loads["Sport"]
+# Loads_parking = Typo_all_loads["Parking"]
+# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+# Loads = Loads_unique
+# df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%%
 def get_baseload_2(df):
@@ -95,6 +96,45 @@ def get_baseload_2(df):
     
     return result
 
+def get_daily_max(df):
+    """
+    
+    kWhel/15'/m2'
+    Delineate annual tendencies over days, weeks, and months
+    
+
+
+    Parameters
+    ----------
+    df : DataFrame
+        Input DataFrame.
+
+    Returns
+    -------
+    result : DataFrame
+        DataFrame containing the mean of the 6 smallest values of each column.
+    """
+
+    num_rows = df.shape[0]
+    maxima = []
+
+    # Iterate over the DataFrame in chunks of 96 rows
+    chunk_size = 96
+    for i in range(0, num_rows, chunk_size):
+        chunk = df.iloc[i:i + chunk_size]  # Get the current chunk of 96 rows
+        
+        # Calculate the 6 smallest values of each column
+        #smallest_values = chunk.iloc[:16, :] #if using 96 we get the daily average and if using nlargest(n) we get the n largest data points of the day
+        #print(smallest_values)
+        # Calculate the mean of the smallest values for each column
+        maximum = chunk.max()
+        
+        maxima.append(maximum)  # Append the averages to the list
+    
+    # Concatenate the averages into a single DataFrame
+    result = pd.concat(maxima, axis=1).T
+    
+    return result
 
 #%%
 df = Loads.astype(np.longdouble)
@@ -122,7 +162,7 @@ for i, column in enumerate(df.columns):
     #if i in [2, 4, 9, 11, 14]:
             #plt.ylim(0.0002, 0.0030)
         
-            plt.ylim(-5, 6)
+            #plt.ylim(-5, 6)
             
             # Replace 0 values with NaN
             infra = df[column].copy()
@@ -316,10 +356,46 @@ plt.xlabel("Identifiants des clients")
 plt.ylabel("Variation [%]")
 plt.grid(axis='y')
 
+#%% creating datasets of everything but schools
+
+# Loads_buv = Typo_loads_2023["Buvette"]
+# Loads_sport = Typo_loads_2023["Sport"]
+# Loads_parking = Typo_loads_2023["Parking"]
+# Loads_voirie = Typo_loads_2023["Commune"]
+# Loads_admin  = Typo_loads_2023["Admin"]
+# Loads_garderie  = Typo_loads_2023["Apems"]
+# Loads_culture  = Typo_loads_2023["Culture"]
+# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
+# Loads = 1000*Loads_unique #W/15'/m2
+# #df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+
+
+#%% Baseload proportion to mean load
+Loads = 1000*Typo_loads_2023["Ecole"]
+
+
+#%% baseload relative plot only 
+"""If you want to have both years instead of their average, change typical_year by Loads"""
+#df_nan = Loads.replace(0, np.nan)
+max_load = (4*get_daily_max(Loads)).mean(axis=0)
+base_load = (4*get_baseload_2(Loads)).mean(axis=0)
+
+plt.bar(range(1, len(Loads.columns) + 1),max_load, color="royalblue")
+plt.bar(range(1, len(Loads.columns) + 1),base_load, color="darkorange")
+plt.xticks(ticks=range(1, len(Loads.columns) + 1), labels=Loads.columns, rotation=45)
+plt.ylabel("Charge [$W_{el}/m^2$]")
+plt.xlabel("Identifiants des clients")
+plt.title("Part relative de la charge de base")
+plt.grid(axis="y")
+
+baseload_ratio = base_load/max_load
 #%% grading for comparison matrix - baseload trend score 
 
-    
+# score pour variation annuelle 
 grades, classes, thresolds = f.get_score(x, y)
+
+# score pour proportion de baseload 
+grades, classes, thresolds = f.get_score(Loads.columns, baseload_ratio)
 
 plt.figure()
 for i, (k, v) in enumerate(classes.items()):
@@ -335,7 +411,7 @@ for i, (k, v) in enumerate(classes.items()):
     elif v == 5:
         plt.bar(i,v, color="purple")
 plt.grid(axis='y')
-plt.xticks(range(len(x)), x)
+plt.xticks(range(len(x)), x, rotation=45)
 plt.show()
 
 #%% past code 
