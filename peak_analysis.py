@@ -14,6 +14,7 @@ import pandas as pd
 import os
 from scipy.stats import shapiro
 import seaborn as sb
+from total_consumption import get_score
 """functions imports"""
 
 import functions as f
@@ -383,7 +384,9 @@ plt.grid(True)
 plt.show()
 
 #%% Overload peaks extraction
-
+Loads = Typo_all_loads["Ecole"]
+#Loads = Loads_unique
+df = Loads.astype(np.longdouble)
 # Initialize lists to store maximum values and their indices for each client
 max_values = []
 max_indices = []
@@ -466,6 +469,34 @@ print(max_indices_df)
 
 
 
+
+#%%  mean of max_load for each customer
+
+
+max_values_df[max_values_df == 0] = np.nan
+
+max_values_dfkW = max_values_df * 4
+mean_max_values = max_values_dfkW.mean(axis=0)
+
+
+#categories = list(total_mild_occurences.keys())
+#values = list(total_mild_occurences.values())
+
+# Plotting the bar plot
+plt.bar(Loads.columns, mean_max_values, color="royalblue")
+
+# Adding labels and title
+plt.xlabel('Consumers')
+plt.ylabel('Loads [$kW_{el}/m^2$]')
+plt.title('Mean power of monthly maximal loads')
+
+# Rotating x-axis labels for better readability (optional)
+plt.xticks(rotation=45)
+
+# Displaying the plot
+plt.show()
+
+
 #%%
 max_values_df[max_values_df == 0] = np.nan
 
@@ -485,27 +516,6 @@ plt.ylabel('Maximum Load [$kW_{el}/m^2$]')
 plt.xticks(range(1, 13))
 plt.legend(title="Consumers", loc='center left', bbox_to_anchor=(1, 0.5))
 plt.grid(True)
-plt.show()
-
-#%%  sum of max_load for each customer
-total_max_values = max_values_dfkW.sum(axis=0)
-
-
-#categories = list(total_mild_occurences.keys())
-#values = list(total_mild_occurences.values())
-
-# Plotting the bar plot
-plt.bar(Loads.columns, total_max_values, color=hls_palette[8])
-
-# Adding labels and title
-plt.xlabel('Consumers')
-plt.ylabel('Sum of maximal loads [$kW_{el}/m^2$]')
-plt.title('Total power of monthly maximal loads')
-
-# Rotating x-axis labels for better readability (optional)
-plt.xticks(rotation=45)
-
-# Displaying the plot
 plt.show()
 
 #%%

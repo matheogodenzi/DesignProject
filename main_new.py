@@ -16,6 +16,7 @@ import os
 import seaborn as sb
 from datetime import datetime
 import matplotlib.dates as mdates
+import matplotlib as mpl
 
 """functions imports"""
 
@@ -27,103 +28,17 @@ import process_data as p
 
 """data acquisition"""
 
-#%%
+#%% data acquisition
+#True> total load, if False > only SIE load (without PV)
+LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.get_load_curves(False)
 
-# DEFINING PATHS
-## Generic path of the folder in your local terminal 
-current_script_path = os.path.abspath(__file__)
-parent_directory = os.path.dirname(current_script_path)
-
-
-## Creating specificpath for each commune
-renens = parent_directory + "\\Renens"
-ecublens = parent_directory + "\\Ecublens"
-crissier = parent_directory + "\\Crissier"
-chavannes = parent_directory + "\\Chavannes"
-
-Commune_paths = [renens, ecublens, crissier, chavannes]
-
-
-## reading excel files 
-load_data_2023 = []
-load_data_2022 = []
-building_data_2023 = []
-pv_2022 = []
-
-
-for i, commune in enumerate(Commune_paths):
-    
-    # extracting load curves 
-    load_2023 = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=2)
-    load_2023.set_index("Date", inplace=True)
-    load_2022 = pd.read_excel(commune+"\\"+ f.get_variable_name(commune, globals()) +"_cch_podvert_2022.xlsx", sheet_name=2)
-    load_2022.set_index("Date", inplace=True)
-    
-    given_file ="\\" + f.get_variable_name(commune, globals()) + "_cch_plus_20MWh_complement"
-    pv_commune = []
-    for root, dirs, files in os.walk(commune):
-        if given_file in files: 
-            file_path = os.path.join(root, given_file)
-            try:
-                # Read the Excel file using pandas
-                pv_prod_2022 = pd.read_excel(file_path)
-                pv_prod_2022.set_index("Date", inplace=True)
-                # Perform actions with the DataFrame 'df'
-                print(f"Successfully read {given_file} in {root}.")
-                # Add more code to work with the DataFrame if needed
-                pv_2022.append(pv_prod_2022)
-                pv_commune.append(f.get_variable_name(commune, globals()))
-            except Exception as e:
-                # Handle any exceptions raised during reading or processing
-                print(f"An error occurred while reading {given_file} in {root}: {e}")
-        else:
-            print(f"{given_file} not found in {root}.")
-            # Add code to handle this case or simply pass
-    
-        
-    # extracting buildings
-    buildings = pd.read_excel(commune + "\\" + f.get_variable_name(commune, globals()) +"_courbes_de_charge_podvert_2023.xlsx", sheet_name=0)
-    
-    # storing data 
-    load_data_2023.append(load_2023)
-    load_data_2022.append(load_2022)
-    
-    building_data_2023.append(buildings)
-
-
-LoadCurve_2023_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2023[i] for i in range(len(Commune_paths))}
-LoadCurve_2022_dict = {f.get_variable_name(Commune_paths[i], globals()): load_data_2022[i] for i in range(len(Commune_paths))}
-Building_dict_2023 = {f.get_variable_name(Commune_paths[i], globals()): building_data_2023[i] for i in range(len(Commune_paths))}
-pv_2022_dict = {pv_commune[i]: pv_2022[i] for i in range(len(pv_commune))}
-
-print(pv_2022_dict)
 #%% get all typologies sorted for all provided year 
 
-#School_loads =[]
-#Culture_loads = []
-#Apems_loads = []
-#Institutions_loads = []
-#Bar_loads =[]
-#Parkinglot_loads =[]
-
-Typo_list = ["Ecole", "Culture", "Apems", "Commune", "Buvette", "Parking"]
-
-#getting typologies from 2022
-Typo_loads_2022 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2022_dict, Typo_list)
-
-#getting typologies from 2023
-Typo_loads_2023 = p.discriminate_typologies(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
-
-# creating overall dictionnary
-Typo_all_loads = {}
-for typo in Typo_list:
-    Typo_all_loads[typo] = pd.concat([Typo_loads_2022[typo], Typo_loads_2023[typo]], axis=0)
-    
-#print(Typo_loads)
-
+# if True > normalized load, if False > absolute load 
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict,True)
 
 #%% consumption dictionnary sorting
-
+"""
 typo_loads2, ID_mapping = p.discriminate_typologies2(Building_dict_2023, LoadCurve_2023_dict, Typo_list)
 
 Cons_list = ["bas", "moyen", "haut", "fort"]
@@ -137,7 +52,7 @@ Cons_all_loads = {}
 for cons in Cons_list:
     Cons_all_loads[cons] = pd.concat([Cons_loads_2022[cons], Cons_loads_2022[cons]], axis=0)
 
-
+"""
 
 #%% calculating mean and standard deviation for a typical day the year 
 
@@ -147,7 +62,7 @@ Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
-Loads = Typo_all_loads[Typology]
+Loads = Typo_all_loads[Typology] *4 *1000 #[W/m2]
 Tendency = f.period_tendencies(Loads, Period)
 
 
@@ -169,13 +84,13 @@ typical_year = f.typical_period(Loads,  "year")
 typical_day = f.typical_period(typical_year, Period)
 
 #color list 
-color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple", ]
-
+color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple", "pink"]
+Typo_list = ["Culture", "Apems", "Commune", "Admin", "Buvette", "Parking", "Sport"]
 #initiating figure
 plt.figure()
 for i, typo in enumerate(Typo_list) : 
     
-    loads = Typo_all_loads[typo]
+    loads = Typo_all_loads[typo] *4 *1000 #[W/m2]
     # Obtain a typical year
     t_year = f.typical_period(loads,  "year")
     #obtain typical day 
@@ -193,13 +108,14 @@ for i, typo in enumerate(Typo_list) :
             t_day[col].plot(color=colors[i], label=typo)
 
     else:
-        plt.semilogy(t_day, color=color[i], label=typo)
+        plt.plot(t_day, color=color[i], label=typo)
     
 plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Typologies")
 plt.tight_layout(rect=[0, 0, 1, 2.3])
 plt.xlabel("Heures")
-plt.ylabel("Mean daily consumption [$kWh_{el}/m^2$]")
+plt.ylabel("Mean daily consumption [$W_{el}/m^2$]")
 plt.title("Mean day consumption - typology distinction")
+plt.yscale("log")
 plt.grid()
 plt.show()
 
@@ -249,7 +165,30 @@ plt.show()
 #my_colors = sb.color_palette("flare", result.shape[1])
 #color list 
 #color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple"]
-color = sb.color_palette("husl", 29, 1)
+# Generate a color palette using 'tab20' and another colormap
+def get_contrasting_colors(n_colors):
+    # Use multiple colormaps to get enough colors
+    colormaps = [plt.cm.tab20, plt.cm.Set3, plt.cm.Paired]
+    colors = []
+    for cmap in colormaps:
+        colors.extend([cmap(i) for i in range(cmap.N)])
+        if len(colors) >= n_colors:
+            break
+    return colors[:n_colors]
+
+# Number of colors needed
+n_colors = 29
+
+# Get the colors
+colors = get_contrasting_colors(n_colors)
+#%%
+
+# Get the colors
+colors = get_contrasting_colors(n_colors)
+
+#color = sb.color_palette("husl", 29, 1)
+#color = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
+#mpl.rcParams['axes.prop_cycle'] = mpl.cycler(color=colors)
 colori = 0
 #initiating figure
 plt.figure()
@@ -265,7 +204,7 @@ for i, typo in enumerate(Typo_list) :
     
 
     for j, col in enumerate(t_day.columns):
-        t_day[col].plot(color=color[colori], label=col)
+        t_day[col].plot(label=col, color=colors[colori])
         colori += 1
 
 #plt.yscale("log")
