@@ -420,23 +420,23 @@ coef_df_n.index = df.columns
 #%% plotting scores 
 
 #y for trends 
-# y = np.array(relative_slope)*100*365
+#y = np.array(relative_slope)*100*365
 
-# #y for mean values 
-# df_nan = typical_year.replace(0, np.nan)
-# Daily_average_load = get_mean_load_kW(df_nan) #kW
-# Dailymeans = Daily_average_load.mean()
-# y = Dailymeans.values
+#y for mean values 
+df_nan = typical_year.replace(0, np.nan)
+Daily_average_load = get_mean_load_kW(df_nan) #kW
+Dailymeans = Daily_average_load.mean()
+y = Dailymeans.values
 
-#y for mean values normalized
+# #y for mean values normalized
 # df_nan_n = typical_year_n.replace(0, np.nan)
-# Daily_average_load_n = get_mean_load_kW(df_nan_n) # kW/m2
+# Daily_average_load_n = 1000*get_mean_load_kW(df_nan_n) # W/m2
 # Dailymeans_n = Daily_average_load_n.mean()
 # y = Dailymeans_n.values
 
-"""Le pourcentage de variation est le même indépendemment de la normalisation"""
-y = 100*365*np.array(relative_slope)
-#y = 100*365*np.array(relative_slope_n)
+# """Le pourcentage de variation est le même indépendemment de la normalisation"""
+# y = 100*365*np.array(relative_slope)
+# #y = 100*365*np.array(relative_slope_n)
 
 print(y)
 x= coef_df.index
@@ -461,19 +461,19 @@ plt.show()
 plt.figure(figsize=(6,5))
 for i, (k, v) in enumerate(classes.items()):
     if v == 1:
-        plt.bar(i,v, color="green")
+        plt.bar(i,v, color="darkgreen")
     elif v == 2:
-        plt.bar(i,v, color="yellow")
+        plt.bar(i,v, color="lightgreen")
     elif v == 3:
-        plt.bar(i,v, color="orange")
+        plt.bar(i,v, color="yellow")
     elif v == 4:
-        plt.bar(i,v, color="red" )
+        plt.bar(i,v, color="orange" )
     elif v == 5:
-        plt.bar(i,v, color="purple")
+        plt.bar(i,v, color="red")
     else:
         plt.bar(i, v, color="blue")
 plt.grid(axis='y')
-plt.xticks(range(len(x)), x)
+plt.xticks(range(len(x)), x, rotation=45)
 plt.show()
 #%% Previous code 
 """
