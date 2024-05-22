@@ -118,21 +118,34 @@ Loads_2023 = Typo_loads_2023[Typology]
 print(Loads.sum(axis=0))
 
 #%% Unique dataset total 
-# Loads_buv = Typo_all_loads["Buvette"]
-# Loads_sport = Typo_all_loads["Sport"]
-# Loads_parking = Typo_all_loads["Parking"]
-# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
-# Loads = Loads_unique
+
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_admin = Typo_all_loads["Admin"]
+Loads_voirie = Typo_all_loads["Commune"]
+Loads_culture = Typo_all_loads["Culture"]
+Loads_apems = Typo_all_loads["Apems"]
+
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking,Loads_admin, Loads_voirie, Loads_culture, Loads_apems], axis=1)
+Loads = Loads_unique
 
 
-# df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+df = 4*Loads_unique.astype(np.longdouble) #kW
 
 
-# Loads_buv_n = Typo_all_loads_n["Buvette"]
-# Loads_sport_n = Typo_all_loads_n["Sport"]
-# Loads_parking_n = Typo_all_loads_n["Parking"]
-# Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n], axis=1)
-# Loads_n = Loads_unique_n
+Loads_buv_n = Typo_all_loads_n["Buvette"]
+Loads_sport_n = Typo_all_loads_n["Sport"]
+Loads_parking_n = Typo_all_loads_n["Parking"]
+Loads_admin_n = Typo_all_loads_n["Admin"]
+Loads_voirie_n = Typo_all_loads_n["Commune"]
+Loads_culture_n = Typo_all_loads_n["Culture"]
+Loads_apems_n = Typo_all_loads_n["Apems"]
+
+Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n, Loads_admin_n, Loads_voirie_n, Loads_culture_n, Loads_apems_n], axis=1)
+Loads_n = Loads_unique_n
+
+df_n = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%% Année type
 
@@ -419,8 +432,8 @@ plt.show()
 coef_df_n.index = df.columns
 #%% plotting scores 
 
-#y for trends 
-#y = np.array(relative_slope)*100*365
+# #y for trends 
+# y = np.array(relative_slope)*100*365
 
 #y for mean values 
 df_nan = typical_year.replace(0, np.nan)
@@ -475,6 +488,26 @@ for i, (k, v) in enumerate(classes.items()):
 plt.grid(axis='y')
 plt.xticks(range(len(x)), x, rotation=45)
 plt.show()
+
+grades
+
+#%%
+
+# Sample data
+data = {
+    'coefficients': [1/11, 2/11, 3/11, 3/11, 1/11, 1/11],
+    'figures': [0,48,12,32, 0, 59]
+}
+
+df = pd.DataFrame(data)
+
+# Calculate the weighted sum
+df['weighted'] = df['coefficients'] * df['figures']
+weighted_sum = df['weighted'].sum()
+weighted_average = weighted_sum / df['coefficients'].sum()
+print(weighted_sum)
+
+
 #%% Previous code 
 """
 # parameters to change

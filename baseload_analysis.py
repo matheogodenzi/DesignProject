@@ -47,13 +47,18 @@ Loads_2023 = Typo_loads_2023[Typology]
 
 my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 
-#%% Unique dataset
-# Loads_buv = Typo_all_loads["Buvette"]
-# Loads_sport = Typo_all_loads["Sport"]
-# Loads_parking = Typo_all_loads["Parking"]
-# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
-# Loads = Loads_unique
-# df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+#%% creating datasets of everything but schools
+
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_voirie = Typo_all_loads["Commune"]
+Loads_admin  = Typo_all_loads["Admin"]
+Loads_garderie  = Typo_all_loads["Apems"]
+Loads_culture  = Typo_all_loads["Culture"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
+Loads = Loads_unique #kW/15'/m2
+#df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%%
 def get_baseload_2(df):
@@ -356,18 +361,19 @@ plt.xlabel("Identifiants des clients")
 plt.ylabel("Variation [%]")
 plt.grid(axis='y')
 
+thresholds
 #%% creating datasets of everything but schools
 
-# Loads_buv = Typo_loads_2023["Buvette"]
-# Loads_sport = Typo_loads_2023["Sport"]
-# Loads_parking = Typo_loads_2023["Parking"]
-# Loads_voirie = Typo_loads_2023["Commune"]
-# Loads_admin  = Typo_loads_2023["Admin"]
-# Loads_garderie  = Typo_loads_2023["Apems"]
-# Loads_culture  = Typo_loads_2023["Culture"]
-# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
-# Loads = 1000*Loads_unique #W/15'/m2
-# #df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+Loads_buv = Typo_loads_2023["Buvette"]
+Loads_sport = Typo_loads_2023["Sport"]
+Loads_parking = Typo_loads_2023["Parking"]
+Loads_voirie = Typo_loads_2023["Commune"]
+Loads_admin  = Typo_loads_2023["Admin"]
+Loads_garderie  = Typo_loads_2023["Apems"]
+Loads_culture  = Typo_loads_2023["Culture"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
+Loads = 1000*Loads_unique #W/15'/m2
+#df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 
 #%% Baseload proportion to mean load
@@ -377,8 +383,8 @@ Loads = 1000*Typo_loads_2023["Ecole"]
 #%% baseload relative plot only 
 """If you want to have both years instead of their average, change typical_year by Loads"""
 #df_nan = Loads.replace(0, np.nan)
-max_load = (4*get_daily_max(Loads)).mean(axis=0)
-base_load = (4*get_baseload_2(Loads)).mean(axis=0)
+max_load = (1000*4*get_daily_max(Loads)).mean(axis=0)
+base_load = (1000*4*get_baseload_2(Loads)).mean(axis=0)
 
 plt.bar(range(1, len(Loads.columns) + 1),max_load, color="royalblue")
 plt.bar(range(1, len(Loads.columns) + 1),base_load, color="darkorange")
@@ -391,8 +397,8 @@ plt.grid(axis="y")
 baseload_ratio = base_load/max_load
 #%% grading for comparison matrix - baseload trend score 
 
-# score pour variation annuelle 
-grades, classes, thresolds = f.get_score(x, y)
+# # score pour variation annuelle 
+# grades, classes, thresolds = f.get_score(x, y)
 
 # score pour proportion de baseload 
 grades, classes, thresolds = f.get_score(Loads.columns, baseload_ratio)
@@ -401,19 +407,23 @@ plt.figure()
 for i, (k, v) in enumerate(classes.items()):
     print(type(v))
     if v == 1:
-        plt.bar(i,v, color="green")
+        plt.bar(i,v, color="darkgreen")
     elif v == 2:
-        plt.bar(i,v, color="yellow")
+        plt.bar(i,v, color="lightgreen")
     elif v == 3:
-        plt.bar(i,v, color="orange")
+        plt.bar(i,v, color="yellow")
     elif v == 4:
-        plt.bar(i,v, color="red" )
+        plt.bar(i,v, color="orange" )
     elif v == 5:
-        plt.bar(i,v, color="purple")
+        plt.bar(i,v, color="red")
+    else: 
+        plt.bar(i,v, color="blue")
 plt.grid(axis='y')
 plt.xticks(range(len(x)), x, rotation=45)
 plt.show()
 
+grades
+thresolds
 #%% past code 
 
 """

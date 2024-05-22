@@ -523,7 +523,7 @@ def get_score(typology_names, parameters):
             classes[typology_names[i]] = 3
         elif grades[typology_names[i]] <= 80 :
             classes[typology_names[i]] = 4
-        elif grades[typology_names[i]] <= 100 :
+        elif grades[typology_names[i]] <= 101 :
             classes[typology_names[i]] = 5
     
     thresholds = [v/100*(max_-min_) + min_ for v in [0, 20, 40, 60, 80 , 100]]
