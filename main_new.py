@@ -35,7 +35,7 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict,True)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict,False)
 
 #%% consumption dictionnary sorting
 """
@@ -85,7 +85,7 @@ typical_day = f.typical_period(typical_year, Period)
 
 #color list 
 color = ["darkblue", "royalblue", "green", "yellow", "orange", "red", "purple", "pink"]
-Typo_list = ["Culture", "Apems", "Commune", "Admin", "Buvette", "Parking", "Sport"]
+Typo_list = ["Ecole","Culture", "Apems", "Commune", "Admin", "Buvette", "Parking", "Sport"]
 #initiating figure
 plt.figure()
 for i, typo in enumerate(Typo_list) : 
@@ -194,7 +194,7 @@ colori = 0
 plt.figure()
 for i, typo in enumerate(Typo_list) : 
     
-    loads = Typo_all_loads[typo]
+    loads = Typo_all_loads[typo] *4 #*1000 #[kW/m2]
     # Obtain a typical year
     t_year = f.typical_period(loads,  "year")
     #obtain typical day 
@@ -217,11 +217,11 @@ for i, typo in enumerate(Typo_list) :
 tick_labels = ["0"+str(i)+":00" if i < 10 else str(i)+":00" for i in range(0, 24, 2)]
 tick_positions = [i*8 for i in range(12)]
 plt.xticks(tick_positions, tick_labels, rotation=45)
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Consumers")
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Consommateurs")
 plt.tight_layout(rect=[0, 0, 1, 2.3])
-plt.xlabel("Hours")
-plt.ylabel("Mean daily consumption [$kWh_{el}/m^2$]")
-plt.title("Mean daily consumption")
+plt.xlabel("Heure")
+plt.ylabel("Charge absolue [$kW_{el}$]")
+plt.title("Profil moyen journalier")
 plt.grid()
 plt.show()
 

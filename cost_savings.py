@@ -139,7 +139,7 @@ def calculate_max_values(df):
 
 max_values_df = calculate_max_values(df)
 
-def calculate_peak_economies(df, max_values_df, factor=0.8):
+def calculate_peak_economies(df, max_values_df, factor):
     """
     Calculate peak economies based on a factor and maximum values DataFrame.
     
@@ -153,17 +153,21 @@ def calculate_peak_economies(df, max_values_df, factor=0.8):
     """
     df_shaved = df.copy()
 
-    for i in range(max_values_df.shape[0]):
-        for j in range(df_shaved[df_shaved.index.month == i + 1].shape[1]):
-            condition = (df_shaved.index.month == i + 1) & (df_shaved.iloc[:, j] > factor * max_values_df.iloc[i, j])
-            df_shaved.loc[condition, df_shaved.columns[j]] = factor * max_values_df.iloc[i, j]
+    for i in range(1, 13):  # Loop over months (1 to 12)
+        month_condition = (df_shaved.index.month == i)
+        
+        for j in range(df_shaved.shape[1]):  # Loop over columns
+            column_condition = df_shaved.iloc[:, j] > factor * max_values_df.iloc[i-1, j]  # Correct index in max_values_df
+            condition = month_condition & column_condition
+            
+            df_shaved.loc[condition, df_shaved.columns[j]] = factor * max_values_df.iloc[i-1, j]
 
     peak_economies = df - df_shaved
     
     return peak_economies, df_shaved
 
 # Usage:
-peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor =0.8)
+peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor =1)
 energy_economies = peak_economies.mean(0)*365*24 #kWh/an/m2 (si normalisation préalable)
 #plt.bar(Loads.columns, energy_economies)
 #plt.xticks(rotation=45)
@@ -240,14 +244,15 @@ Period = "day"
 Loads_buv = Typo_all_loads["Buvette"]
 Loads_sport = Typo_all_loads["Sport"]
 Loads_parking = Typo_all_loads["Parking"]
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
-Loads = Loads_unique
-df = Loads_unique.astype(np.longdouble)
+Loads_commune = Typo_all_loads["Commune"]
+Loads_admin = Typo_all_loads["Admin"]
+Loads_culture = Typo_all_loads["Culture"]
+Loads_apems = Typo_all_loads["Apems"]
+Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_commune, Loads_admin, Loads_culture, Loads_apems], axis=1)
+Loads_ecole =  Typo_all_loads["Ecole"]
+df = Loads_apems.astype(np.longdouble)
 
-# smoothing calculations
-#Loads = 1* Typo_all_loads[Typology] # conversion to [kW] if factor = 4, else kWh/quart d'heure
-
-Loads_copy = Loads.copy()
+Loads_copy = Loads_apems.copy()
 
 Loads_copy.index = pd.to_datetime(Loads_copy.index, format='%d.%m.%Y %H:%M:%S')
 
@@ -266,29 +271,31 @@ load_shifting_df = calculate_load_shifting(calculate_max_values(dfkW), min_facto
 
 annual_financial_savings = calculate_financial_savings(peak_economies)
 financial_savings_list = []
+#peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, 1)
 
 for factor in np.linspace(1,0.8,20):
-    peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor)
+    peak_economies, df_shaved = calculate_peak_economies(df, calculate_max_values(df), factor)
     financial_savings_list.append(calculate_financial_savings(peak_economies))
 
 
 financial_savings_df = pd.concat(financial_savings_list, axis=1).T
 my_colors = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990', '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 load_shifting_df.columns = financial_savings_df.columns
-
-total_financial_savings_df = financial_savings_df.add(load_shifting_df)
+rocket_palette = sb.color_palette("magma", load_shifting_df.shape[1])
+total_financial_savings_df = financial_savings_df + load_shifting_df
 """
 # PUISSANCE
 plt.figure(figsize=(6, 5), dpi=300)
 for i, column in enumerate(financial_savings_df.columns): # adapt to which type of cost to plot
-    plt.plot(np.linspace(0, 20, 20),load_shifting_df[column], color=my_colors[i])
+    plt.plot(np.linspace(0, 20, 20),load_shifting_df[column], color=rocket_palette[i])
 #plt.yscale("log")
 plt.title('Economies financières par écrêtement des pointes (Puissance)')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
 plt.ylabel('Economies financières (CHF/année)')
 plt.locator_params(axis='y', nbins=10)
 #plt.xticks(rotation=45)
-plt.legend(Loads.columns)
+#plt.legend(load_shifting_df.columns)
+plt.legend(load_shifting_df.columns, title="Consumers", loc='center left', bbox_to_anchor=(1, 0.5))
 plt.grid(axis='y')
 plt.show()
 
@@ -317,7 +324,7 @@ plt.xlabel('Facteur de réduction des maxima mensuels [%]')
 plt.ylabel('Economies financières (CHF/année)')
 plt.locator_params(axis='y', nbins=10)
 #plt.xticks(rotation=45)
-plt.legend(Loads.columns)
+plt.legend(load_shifting_df.columns, title="Consommateurs", loc='center left', bbox_to_anchor=(1, 0.75))
 plt.grid(axis='y')
 plt.show()
 
@@ -355,10 +362,11 @@ plt.title('Economies énergétiques par écrêtement des pointes')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
 plt.ylabel('Economie électrique ($kWh_{el}$/année)') # verifier si normalisation activée
 #plt.xticks(rotation=45)
-plt.legend(Loads.columns)
+plt.legend(energy_economies_df, title = 'Consommateurs', loc='center left', bbox_to_anchor=(1, 0.75))
 plt.grid(axis='y')
 plt.show()
 
+average_energy_economies = np.mean(energy_economies_df, axis=1)
 #%% illustrative example of peak shaving 
 palette = sb.color_palette("hls", 13)
 

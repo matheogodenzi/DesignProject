@@ -384,9 +384,20 @@ plt.grid(True)
 plt.show()
 
 #%% Overload peaks extraction
-Loads = Typo_all_loads["Ecole"]
-#Loads = Loads_unique
+Loads_buv = Typo_all_loads["Buvette"]
+Loads_sport = Typo_all_loads["Sport"]
+Loads_parking = Typo_all_loads["Parking"]
+Loads_admin = Typo_all_loads["Admin"]
+Loads_commune = Typo_all_loads["Commune"]
+Loads_culture = Typo_all_loads["Culture"]
+Loads_apems = Typo_all_loads["Apems"]
+
+Loads = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_admin, Loads_commune, Loads_culture, Loads_apems], axis=1)
+
 df = Loads.astype(np.longdouble)
+
+
+
 # Initialize lists to store maximum values and their indices for each client
 max_values = []
 max_indices = []
@@ -495,6 +506,11 @@ plt.xticks(rotation=45)
 
 # Displaying the plot
 plt.show()
+#%% scoring peaks
+mean_max_values.index = Loads.columns
+
+peak_grades, peak_classes, peak_thresholds = get_score(Loads.columns, mean_max_values)
+
 
 
 #%%
@@ -504,11 +520,12 @@ max_values_dfkW = max_values_df * 4
 avg_maxvalues = np.nanmean(max_values_dfkW, axis=1)
 # Generate HLS color palette with 13 colors
 hls_palette = sb.color_palette("hls", Loads.shape[1])
+rocket_palette = sb.color_palette("magma", Loads.shape[1])
 
 # Plot max_values_df
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(6,5))
 for client in max_values_df.columns:
-    plt.plot(max_values_dfkW.index, max_values_dfkW[client], label=Loads_last_year.columns[client-1], color=hls_palette[client-1])
+    plt.plot(max_values_dfkW.index, max_values_dfkW[client], label=Loads_last_year.columns[client-1], color=rocket_palette[client-1])
 plt.plot(max_values_dfkW.index, avg_maxvalues, label="Average", color="blue", linewidth=5, alpha=0.5)
 plt.title('Maximum Values for Each Month by Client')
 plt.xlabel('Month')
