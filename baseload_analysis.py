@@ -28,11 +28,11 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Admin"
 Period = "day"
 
 # smoothing calculations
@@ -49,16 +49,16 @@ my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '
 
 #%% creating datasets of everything but schools
 
-Loads_buv = Typo_all_loads["Buvette"]
-Loads_sport = Typo_all_loads["Sport"]
-Loads_parking = Typo_all_loads["Parking"]
-Loads_voirie = Typo_all_loads["Commune"]
-Loads_admin  = Typo_all_loads["Admin"]
-Loads_garderie  = Typo_all_loads["Apems"]
-Loads_culture  = Typo_all_loads["Culture"]
-Loads_unique = pd.concat([Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
-Loads = Loads_unique #kW/15'/m2
-#df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+# # Loads_buv = Typo_all_loads["Buvette"]
+# # Loads_sport = Typo_all_loads["Sport"]
+# # Loads_parking = Typo_all_loads["Parking"]
+# Loads_voirie = Typo_all_loads["Commune"]
+# Loads_admin  = Typo_all_loads["Admin"]
+# Loads_garderie  = Typo_all_loads["Apems"]
+# Loads_culture  = Typo_all_loads["Culture"]
+# Loads_unique = pd.concat([Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
+# Loads = Loads_unique #kW/15'/m2
+# #df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%%
 def get_baseload_2(df):
@@ -365,7 +365,7 @@ thresholds = [v/100*(ma-mi)+mi for v in [0, 20, 40, 60, 80, 100]]
 plt.xticks(np.arange(len(x)), x)
 plt.tick_params(axis='both', which='major', labelsize=9, rotation=45)
 plt.title("Variation annuelle de la charge de base")
-plt.xlabel("Identifiants des clients")
+plt.xlabel("Identifiants des consommateurs")
 plt.ylabel("Variation [%]")
 plt.grid(axis='y')
 
@@ -391,17 +391,51 @@ max_load = (1000*4*get_daily_max(Loads)).mean(axis=0)
 base_load = (1000*4*get_baseload_2(Loads)).mean(axis=0)
 
 
+plt.figure(figsize=(6,5))
 plt.bar(range(1, len(Loads.columns) + 1),max_load, color="royalblue")
 plt.bar(range(1, len(Loads.columns) + 1),base_load, color="darkorange")
 plt.xticks(ticks=range(1, len(Loads.columns) + 1), labels=Loads.columns, rotation=45)
 plt.ylabel("Charge [$W_{el}/m^2$]")
-plt.xlabel("Identifiants des clients")
+plt.xlabel("Identifiants des consommateurs")
+plt.title("Part relative de la charge de base")
+plt.grid(axis="y")
+plt.legend(["Charge maximale", "charge de base"])
+
+baseload_ratio = base_load/max_load
+#%%
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Vos données max_load et base_load
+max_load = (1000 * 4 * get_daily_max(Loads)).mean(axis=0)
+base_load = (1000 * 4 * get_baseload_2(Loads)).mean(axis=0)
+
+# Calcul du pourcentage de base_load par rapport à max_load
+percentage_base_load = (base_load / max_load) * 100
+
+plt.figure(figsize=(6,5))
+bars1 = plt.bar(range(1, len(Loads.columns) + 1), max_load, color="royalblue")
+bars2 = plt.bar(range(1, len(Loads.columns) + 1), base_load, color="darkorange")
+plt.xticks(ticks=range(1, len(Loads.columns) + 1), labels=Loads.columns, rotation=45)
+plt.ylabel("Charge [$W_{el}/m^2$]")
+plt.xlabel("Identifiants des consommateurs")
 plt.title("Part relative de la charge de base")
 plt.grid(axis="y")
 
-baseload_ratio = base_load/max_load
+# Ajout des annotations de pourcentage sur chaque barre
+for bar1, bar2 in zip(bars1, bars2):
+    height1 = bar1.get_height()
+    height2 = bar2.get_height()
+    percentage = (height2 / height1) * 100
+    plt.text(bar1.get_x() + bar1.get_width() / 2, height1, f'{percentage:.1f}%', ha='center', va='bottom', color='black')
+
+plt.legend(["Charge maximale", "Charge de base"])
+
+plt.show()
 
 #%% Baseload avoided or avoidable costs
+"""Attention : remove noralization at the beginning to obtain this result"""
+
 old_baseload = base_load/(y/100 + 1)
 
 energy_variation = base_load-old_baseload
@@ -420,7 +454,7 @@ cost_variation
 
 #Normalihzation must not be performed when processing the data to have total variation results 
 plt.figure()
-plt.bar(range(1, len(Loads.columns) + 1),cost_variation, color="darkorange")
+plt.bar(range(1, len(Loads.columns) + 1),cost_variation, color="royalblue")
 plt.xticks(ticks=range(1, len(Loads.columns) + 1), labels=Loads.columns, rotation=45)
 plt.ylabel("cost variation [$CHF/year$]")
 plt.grid(axis="y")
