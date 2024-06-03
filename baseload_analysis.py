@@ -28,7 +28,7 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 #%% creating a benchmark over available years
 
 # parameters to change
@@ -56,7 +56,7 @@ Loads_voirie = Typo_all_loads["Commune"]
 Loads_admin  = Typo_all_loads["Admin"]
 Loads_garderie  = Typo_all_loads["Apems"]
 Loads_culture  = Typo_all_loads["Culture"]
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
+Loads_unique = pd.concat([Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
 Loads = Loads_unique #kW/15'/m2
 #df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
@@ -157,7 +157,8 @@ fig, ax = plt.subplots(figsize=(6, 5))
 
 coef_df =  pd.DataFrame({'slope': [], 'y-intercept': []})
 relative_slope = []
-
+yi_2023 = []
+yf_2023 = []
 # Perform linear regression and plot for each column
 for i, column in enumerate(df.columns):
     #if i in [0, 3, 6, 8, 12]: #low-level
@@ -203,6 +204,8 @@ for i, column in enumerate(df.columns):
             ax.scatter(X, y-specific_values['y-intercept'], color=my_colors[i], alpha=0.3, s=1)
             
             relative_slope.append(coefficients[0][0]/y_reg[0][0])
+            yi_2023.append(y_reg[-365][0])
+            yf_2023.append(y_reg[-1][0])
             # Set labels and title
             ax.set_title(f'{column}')
             ax.set_xlabel('Jours')
@@ -219,10 +222,15 @@ plt.tight_layout()
 plt.show()
 
 
-#%% average weekly baseload 
+"""plotting 2023 variation"""
+yi = np.array(yi_2023)
+yf = np.array(yf_2023)
+baseload_variations = 100*(yf-yi)/yi
 
-# smoothing calculations
-Loads = Typo_all_loads[Typology]
+plt.figure(figsize=(6,5))
+plt.bar(range(len(baseload_variations)),baseload_variations)
+plt.show()
+
 
 #%%
 num_rows = baseloads.shape[0]
@@ -339,14 +347,14 @@ plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', lin
 plt.show()
 
 
-y = np.array(relative_slope)
+y = baseload_variations
 x = df.columns
 
 # Create a bar plot
 plt.figure(figsize=(6,5))
-plt.bar(np.arange(len(y)), 100*365*y, color="royalblue")
+plt.bar(np.arange(len(y)), y, color="royalblue")
 
-yy = 100*365*y
+yy = baseload_variations
 
 mi = min(yy)
 ma = max(yy)
@@ -364,20 +372,16 @@ plt.grid(axis='y')
 thresholds
 #%% creating datasets of everything but schools
 
-Loads_buv = Typo_loads_2023["Buvette"]
-Loads_sport = Typo_loads_2023["Sport"]
-Loads_parking = Typo_loads_2023["Parking"]
-Loads_voirie = Typo_loads_2023["Commune"]
-Loads_admin  = Typo_loads_2023["Admin"]
-Loads_garderie  = Typo_loads_2023["Apems"]
-Loads_culture  = Typo_loads_2023["Culture"]
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
-Loads = 1000*Loads_unique #W/15'/m2
-#df = 4*Loads_unique.astype(np.longdouble) #kW/m2
-
-
-#%% Baseload proportion to mean load
-Loads = 1000*Typo_loads_2023["Ecole"]
+# Loads_buv = Typo_loads_2023["Buvette"]
+# Loads_sport = Typo_loads_2023["Sport"]
+# Loads_parking = Typo_loads_2023["Parking"]
+# Loads_voirie = Typo_loads_2023["Commune"]
+# Loads_admin  = Typo_loads_2023["Admin"]
+# Loads_garderie  = Typo_loads_2023["Apems"]
+# Loads_culture  = Typo_loads_2023["Culture"]
+# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
+# Loads = 1000*Loads_unique #W/15'/m2
+# #df = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 
 #%% baseload relative plot only 
@@ -385,6 +389,7 @@ Loads = 1000*Typo_loads_2023["Ecole"]
 #df_nan = Loads.replace(0, np.nan)
 max_load = (1000*4*get_daily_max(Loads)).mean(axis=0)
 base_load = (1000*4*get_baseload_2(Loads)).mean(axis=0)
+
 
 plt.bar(range(1, len(Loads.columns) + 1),max_load, color="royalblue")
 plt.bar(range(1, len(Loads.columns) + 1),base_load, color="darkorange")
@@ -395,6 +400,31 @@ plt.title("Part relative de la charge de base")
 plt.grid(axis="y")
 
 baseload_ratio = base_load/max_load
+
+#%% Baseload avoided or avoidable costs
+old_baseload = base_load/(y/100 + 1)
+
+energy_variation = base_load-old_baseload
+#print(energy_variation)
+
+HP_tarif = 8.44 #c/kWh
+HC_tarif = 2.6 #c/kWh
+
+HP_hours = 364*24 - (22-6)*52*5
+HC_hours = 364*24 - HP_hours
+
+#Economies per meter squared 
+cost_variation = (energy_variation/1000)*(HP_tarif*HP_hours+HC_tarif*HC_hours)/100/2 #CHF/year
+#dividing by 2 to make sure we do not atteibute more baseload to the orginal values than what there was 
+cost_variation
+
+#Normalihzation must not be performed when processing the data to have total variation results 
+plt.figure()
+plt.bar(range(1, len(Loads.columns) + 1),cost_variation, color="darkorange")
+plt.xticks(ticks=range(1, len(Loads.columns) + 1), labels=Loads.columns, rotation=45)
+plt.ylabel("cost variation [$CHF/year$]")
+plt.grid(axis="y")
+plt.show()
 #%% grading for comparison matrix - baseload trend score 
 
 # # score pour variation annuelle 

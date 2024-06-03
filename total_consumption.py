@@ -119,33 +119,33 @@ print(Loads.sum(axis=0))
 
 #%% Unique dataset total 
 
-Loads_buv = Typo_all_loads["Buvette"]
-Loads_sport = Typo_all_loads["Sport"]
-Loads_parking = Typo_all_loads["Parking"]
-Loads_admin = Typo_all_loads["Admin"]
-Loads_voirie = Typo_all_loads["Commune"]
-Loads_culture = Typo_all_loads["Culture"]
-Loads_apems = Typo_all_loads["Apems"]
+# Loads_buv = Typo_all_loads["Buvette"]
+# Loads_sport = Typo_all_loads["Sport"]
+# Loads_parking = Typo_all_loads["Parking"]
+# Loads_admin = Typo_all_loads["Admin"]
+# Loads_voirie = Typo_all_loads["Commune"]
+# Loads_culture = Typo_all_loads["Culture"]
+# Loads_apems = Typo_all_loads["Apems"]
 
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking,Loads_admin, Loads_voirie, Loads_culture, Loads_apems], axis=1)
-Loads = Loads_unique
-
-
-df = 4*Loads_unique.astype(np.longdouble) #kW
+# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking,Loads_admin, Loads_voirie, Loads_culture, Loads_apems], axis=1)
+# Loads = Loads_unique
 
 
-Loads_buv_n = Typo_all_loads_n["Buvette"]
-Loads_sport_n = Typo_all_loads_n["Sport"]
-Loads_parking_n = Typo_all_loads_n["Parking"]
-Loads_admin_n = Typo_all_loads_n["Admin"]
-Loads_voirie_n = Typo_all_loads_n["Commune"]
-Loads_culture_n = Typo_all_loads_n["Culture"]
-Loads_apems_n = Typo_all_loads_n["Apems"]
+# df = 4*Loads_unique.astype(np.longdouble) #kW
 
-Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n, Loads_admin_n, Loads_voirie_n, Loads_culture_n, Loads_apems_n], axis=1)
-Loads_n = Loads_unique_n
 
-df_n = 4*Loads_unique.astype(np.longdouble) #kW/m2
+# Loads_buv_n = Typo_all_loads_n["Buvette"]
+# Loads_sport_n = Typo_all_loads_n["Sport"]
+# Loads_parking_n = Typo_all_loads_n["Parking"]
+# Loads_admin_n = Typo_all_loads_n["Admin"]
+# Loads_voirie_n = Typo_all_loads_n["Commune"]
+# Loads_culture_n = Typo_all_loads_n["Culture"]
+# Loads_apems_n = Typo_all_loads_n["Apems"]
+
+# Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n, Loads_admin_n, Loads_voirie_n, Loads_culture_n, Loads_apems_n], axis=1)
+# Loads_n = Loads_unique_n
+
+# df_n = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%% Année type
 
@@ -221,7 +221,7 @@ boxplot = df.boxplot(flierprops=flierprops)
 plt.scatter(range(1, len(df.columns) + 1), means, color='red', label='Mean', zorder=3, s=10)
 plt.xticks(ticks=range(1, len(df.columns) + 1), labels=df.columns, rotation=45)
 plt.xlabel("Identifiants des consommateurs")
-plt.ylabel("Charge [$kW_{el}$]")
+plt.ylabel("Load [$kW_{el}$]")
 plt.title("Distribution annuelle de la charge journalière")
 plt.grid(axis="x")
 
@@ -233,7 +233,7 @@ caps = [item for item in boxplot.findobj(match=plt.Line2D)][3::6]  # caps
 
 # Create legend with labels
 plt.legend([medians[0], caps[0], plt.Line2D([], [], color='red', marker='o', linestyle='None'), plt.Line2D([], [], color='black', marker='*', linestyle='None')], 
-           [ 'Mediane', 'Bornes', 'Moyenne', 'Extrêmes'])
+           [ 'Median', 'Bounds', 'Mean', 'Outliers'])
 
 plt.show()
 
