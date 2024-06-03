@@ -384,15 +384,16 @@ plt.grid(True)
 plt.show()
 
 #%% Overload peaks extraction
-Loads_buv = Typo_all_loads["Buvette"]
-Loads_sport = Typo_all_loads["Sport"]
-Loads_parking = Typo_all_loads["Parking"]
+#Loads_buv = Typo_all_loads["Buvette"]
+#Loads_sport = Typo_all_loads["Sport"]
+#Loads_parking = Typo_all_loads["Parking"]
 Loads_admin = Typo_all_loads["Admin"]
 Loads_commune = Typo_all_loads["Commune"]
 Loads_culture = Typo_all_loads["Culture"]
 Loads_apems = Typo_all_loads["Apems"]
 
-Loads = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_admin, Loads_commune, Loads_culture, Loads_apems], axis=1)
+#Loads = pd.concat([Loads_admin, Loads_commune, Loads_culture, Loads_apems], axis=1)
+Loads = Typo_all_loads["Apems"]
 
 df = Loads.astype(np.longdouble)
 
@@ -427,7 +428,7 @@ for month, max_values_month, max_indices_month in zip(range(1, 13), max_values, 
     print()
 
 
-#%% Homemade try
+# Homemade try
 
 # Convert the index of the DataFrame to a DatetimeIndex
 Loads_copy = Loads.copy()
@@ -481,7 +482,7 @@ print(max_indices_df)
 
 
 
-#%%  mean of max_load for each customer
+#  mean of max_load for each customer
 
 
 max_values_df[max_values_df == 0] = np.nan
@@ -506,14 +507,14 @@ plt.xticks(rotation=45)
 
 # Displaying the plot
 plt.show()
-#%% scoring peaks
+# scoring peaks
 mean_max_values.index = Loads.columns
 
 peak_grades, peak_classes, peak_thresholds = get_score(Loads.columns, mean_max_values)
 
 
 
-#%%
+#
 max_values_df[max_values_df == 0] = np.nan
 
 max_values_dfkW = max_values_df * 4
@@ -525,13 +526,13 @@ rocket_palette = sb.color_palette("magma", Loads.shape[1])
 # Plot max_values_df
 plt.figure(figsize=(6,5))
 for client in max_values_df.columns:
-    plt.plot(max_values_dfkW.index, max_values_dfkW[client], label=Loads_last_year.columns[client-1], color=rocket_palette[client-1])
-plt.plot(max_values_dfkW.index, avg_maxvalues, label="Average", color="blue", linewidth=5, alpha=0.5)
-plt.title('Maximum Values for Each Month by Client')
-plt.xlabel('Month')
-plt.ylabel('Maximum Load [$kW_{el}/m^2$]')
+    plt.plot(max_values_dfkW.index, max_values_dfkW[client]*1000, label=Loads_last_year.columns[client-1], color=my_palette[client-1])
+plt.plot(max_values_dfkW.index, avg_maxvalues*1000, label="Moyenne", color="blue", linewidth=5, alpha=0.5)
+plt.title('Puissances maximales mensuelles')
+plt.xlabel('Mois')
+plt.ylabel('Charge maximale [$W_{el}/m^2$]')
 plt.xticks(range(1, 13))
-plt.legend(title="Consumers", loc='center left', bbox_to_anchor=(1, 0.5))
+plt.legend(title="Consommateur", loc='center left', bbox_to_anchor=(1, 0.5))
 plt.grid(True)
 plt.show()
 
