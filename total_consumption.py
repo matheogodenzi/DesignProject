@@ -281,6 +281,8 @@ fig, ax = plt.subplots(figsize=(6, 5))
 
 coef_df =  pd.DataFrame({'slope': [], 'y-intercept': []})
 relative_slope = []
+yi_2023 = []
+yf_2023 = []
 
 # Perform linear regression and plot for each column
 for i, column in enumerate(df.columns):
@@ -329,6 +331,11 @@ for i, column in enumerate(df.columns):
             
             
             relative_slope.append(coefficients[0][0]/y_reg[0][0])
+            
+            yi_2023.append(y_reg[-365][0])
+            yf_2023.append(y_reg[-1][0])
+            
+            
             # Set labels and title
             ax.set_title(f'{column}')
             ax.set_xlabel('Jours')
@@ -345,6 +352,18 @@ plt.grid(which='both')
 plt.show()
 
 coef_df.index = df.columns
+
+#%%variation 
+
+"""plotting 2023 variation"""
+yi = np.array(yi_2023)
+yf = np.array(yf_2023)
+mean_load_variations = 100*(yf-yi)/yi
+
+plt.figure(figsize=(6,5))
+plt.bar(range(len(mean_load_variations)),mean_load_variations)
+plt.show()
+
 
 #%% Linear regressions for normalized average loads
 
