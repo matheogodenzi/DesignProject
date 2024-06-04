@@ -392,8 +392,8 @@ Loads_commune = Typo_all_loads["Commune"]
 Loads_culture = Typo_all_loads["Culture"]
 Loads_apems = Typo_all_loads["Apems"]
 
-#Loads = pd.concat([Loads_admin, Loads_commune, Loads_culture, Loads_apems], axis=1)
-Loads = Typo_all_loads["Apems"]
+Loads = pd.concat([Loads_admin, Loads_commune, Loads_culture, Loads_apems], axis=1)
+#Loads = Typo_all_loads["Apems"]
 
 df = Loads.astype(np.longdouble)
 

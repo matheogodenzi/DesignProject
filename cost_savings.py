@@ -185,7 +185,7 @@ def calculate_load_shifting(max_values_df, min_factor=0.9):
         # Calculate savings
         save_factor = 1 - factor
         max_value_savings = max_values_df * save_factor
-        tarif = 12.39  # [CHF/kW] TOP B pic mensuel
+        tarif = 6.19  # [CHF/kW] TOP A pic mensuel
         peak_cost_saving = max_value_savings * tarif
         annual_cost_saving = np.sum(peak_cost_saving, axis=0)
         
