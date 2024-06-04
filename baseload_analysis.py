@@ -32,7 +32,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Admin"
+Typology = "Ecole"
 Period = "day"
 
 # smoothing calculations
@@ -465,7 +465,7 @@ plt.show()
 # grades, classes, thresolds = f.get_score(x, y)
 
 # score pour proportion de baseload 
-grades, classes, thresolds = f.get_score(Loads.columns, baseload_ratio)
+grades, classes, thresolds = f.get_score(Loads.columns,baseload_variations)
 
 plt.figure()
 for i, (k, v) in enumerate(classes.items()):
@@ -486,8 +486,9 @@ plt.grid(axis='y')
 plt.xticks(range(len(x)), x, rotation=45)
 plt.show()
 
-grades
-thresolds
+print(f'Grades = {grades}')
+print("++++++++++++++++++++++++++++")
+print(f"thresholds = {thresolds}")
 #%% past code 
 
 """
