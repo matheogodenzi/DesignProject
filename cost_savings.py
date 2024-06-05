@@ -250,9 +250,9 @@ Loads_culture = Typo_all_loads["Culture"]
 Loads_apems = Typo_all_loads["Apems"]
 Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_commune, Loads_admin, Loads_culture, Loads_apems], axis=1)
 Loads_ecole =  Typo_all_loads["Ecole"]
-df = Loads_apems.astype(np.longdouble)
 
-Loads_copy = Loads_apems.copy()
+df = Loads_ecole.astype(np.longdouble)
+Loads_copy = Loads_ecole.copy()
 
 Loads_copy.index = pd.to_datetime(Loads_copy.index, format='%d.%m.%Y %H:%M:%S')
 
@@ -324,7 +324,7 @@ plt.xlabel('Facteur de réduction des maxima mensuels [%]')
 plt.ylabel('Economies financières (CHF/année)')
 plt.locator_params(axis='y', nbins=10)
 #plt.xticks(rotation=45)
-plt.legend(load_shifting_df.columns, title="Consommateurs", loc='center left', bbox_to_anchor=(1, 0.75))
+plt.legend(load_shifting_df.columns, title="Consommateurs", loc='center left', bbox_to_anchor=(1, 0.57))
 plt.grid(axis='y')
 plt.show()
 
@@ -362,7 +362,7 @@ plt.title('Economies énergétiques par écrêtement des pointes')
 plt.xlabel('Facteur de réduction des maxima mensuels [%]')
 plt.ylabel('Economie électrique ($kWh_{el}$/année)') # verifier si normalisation activée
 #plt.xticks(rotation=45)
-plt.legend(energy_economies_df, title = 'Consommateurs', loc='center left', bbox_to_anchor=(1, 0.75))
+plt.legend(energy_economies_df, title = 'Consommateurs', loc='center left', bbox_to_anchor=(1, 0.57))
 plt.grid(axis='y')
 plt.show()
 
