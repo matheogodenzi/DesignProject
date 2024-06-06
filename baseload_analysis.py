@@ -28,7 +28,7 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 #%% creating a benchmark over available years
 
 # parameters to change
@@ -59,6 +59,7 @@ my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '
 # Loads_unique = pd.concat([Loads_voirie, Loads_admin, Loads_garderie, Loads_culture], axis=1)
 # Loads = Loads_unique #kW/15'/m2
 # #df = 4*Loads_unique.astype(np.longdouble) #kW/m2
+# my_colors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075']
 
 #%%
 def get_baseload_2(df):
@@ -459,13 +460,15 @@ plt.xticks(ticks=range(1, len(Loads.columns) + 1), labels=Loads.columns, rotatio
 plt.ylabel("cost variation [$CHF/year$]")
 plt.grid(axis="y")
 plt.show()
+
+energy_variation*365*24/1000
 #%% grading for comparison matrix - baseload trend score 
 
 # # score pour variation annuelle 
 # grades, classes, thresolds = f.get_score(x, y)
 
 # score pour proportion de baseload 
-grades, classes, thresolds = f.get_score(Loads.columns,baseload_variations)
+grades, classes, thresholds = f.get_score(Loads.columns,baseload_ratio)
 
 plt.figure()
 for i, (k, v) in enumerate(classes.items()):
@@ -488,7 +491,7 @@ plt.show()
 
 print(f'Grades = {grades}')
 print("++++++++++++++++++++++++++++")
-print(f"thresholds = {thresolds}")
+print(f"thresholds = {thresholds}")
 #%% past code 
 
 """

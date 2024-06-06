@@ -104,48 +104,48 @@ def get_mean_load_kW(df, period="week"):
 
 #%% creating a benchmark over available years
 
-# parameters to change
-Typology = "Ecole"
-Period = "day"
+# # parameters to change
+# Typology = "Ecole"
+# Period = "day"
 
-# smoothing calculations
-Loads = Typo_all_loads[Typology] 
-Loads_n = Typo_all_loads_n[Typology]
-#specific years if needed in kWel
-Loads_2022 = Typo_loads_2022[Typology]
-Loads_2023 = Typo_loads_2023[Typology]
+# # smoothing calculations
+# Loads = Typo_all_loads[Typology] 
+# Loads_n = Typo_all_loads_n[Typology]
+# #specific years if needed in kWel
+# Loads_2022 = Typo_loads_2022[Typology]
+# Loads_2023 = Typo_loads_2023[Typology]
 
-print(Loads.sum(axis=0))
+# print(Loads.sum(axis=0))
 
 #%% Unique dataset total 
 
 # Loads_buv = Typo_all_loads["Buvette"]
 # Loads_sport = Typo_all_loads["Sport"]
 # Loads_parking = Typo_all_loads["Parking"]
-# Loads_admin = Typo_all_loads["Admin"]
-# Loads_voirie = Typo_all_loads["Commune"]
-# Loads_culture = Typo_all_loads["Culture"]
-# Loads_apems = Typo_all_loads["Apems"]
+Loads_admin = Typo_all_loads["Admin"]
+Loads_voirie = Typo_all_loads["Commune"]
+Loads_culture = Typo_all_loads["Culture"]
+Loads_apems = Typo_all_loads["Apems"]
 
-# Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking,Loads_admin, Loads_voirie, Loads_culture, Loads_apems], axis=1)
-# Loads = Loads_unique
+Loads_unique = pd.concat([Loads_admin, Loads_voirie, Loads_culture, Loads_apems], axis=1)
+Loads = Loads_unique
 
 
-# df = 4*Loads_unique.astype(np.longdouble) #kW
+df = 4*Loads_unique.astype(np.longdouble) #kW
 
 
 # Loads_buv_n = Typo_all_loads_n["Buvette"]
 # Loads_sport_n = Typo_all_loads_n["Sport"]
 # Loads_parking_n = Typo_all_loads_n["Parking"]
-# Loads_admin_n = Typo_all_loads_n["Admin"]
-# Loads_voirie_n = Typo_all_loads_n["Commune"]
-# Loads_culture_n = Typo_all_loads_n["Culture"]
-# Loads_apems_n = Typo_all_loads_n["Apems"]
+Loads_admin_n = Typo_all_loads_n["Admin"]
+Loads_voirie_n = Typo_all_loads_n["Commune"]
+Loads_culture_n = Typo_all_loads_n["Culture"]
+Loads_apems_n = Typo_all_loads_n["Apems"]
 
-# Loads_unique_n = pd.concat([Loads_buv_n, Loads_sport_n, Loads_parking_n, Loads_admin_n, Loads_voirie_n, Loads_culture_n, Loads_apems_n], axis=1)
-# Loads_n = Loads_unique_n
+Loads_unique_n = pd.concat([Loads_admin_n, Loads_voirie_n, Loads_culture_n, Loads_apems_n], axis=1)
+Loads_n = Loads_unique_n
 
-# df_n = 4*Loads_unique.astype(np.longdouble) #kW/m2
+df_n = 4*Loads_unique.astype(np.longdouble) #kW/m2
 
 #%% Année type
 
@@ -452,7 +452,7 @@ coef_df_n.index = df.columns
 #%% plotting scores 
 
 # #y for trends 
-# y = np.array(relative_slope)*100*365
+y = mean_load_variations
 
 #y for mean values 
 df_nan = typical_year.replace(0, np.nan)
