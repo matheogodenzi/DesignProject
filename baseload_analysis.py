@@ -28,11 +28,11 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Ecole"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
@@ -437,9 +437,9 @@ plt.show()
 #%% Baseload avoided or avoidable costs
 """Attention : remove noralization at the beginning to obtain this result"""
 
-old_baseload = base_load/(y/100 + 1)
+#old_baseload = base_load/(y/100 + 1)
 
-energy_variation = base_load-old_baseload
+energy_variation = yf-yi
 #print(energy_variation)
 
 HP_tarif = 8.44 #c/kWh
