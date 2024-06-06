@@ -35,7 +35,7 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 
 #%%   
 #print(Typo_loads)
@@ -264,15 +264,15 @@ def calculate_max_values(df):
 
     return max_values_df
 
-def calculate_peak_economies(df, max_values_df, factor):
+def calculate_peak_economies(df, max_values_df, factor_df):
     """
     Calculate peak economies based on a factor and maximum values DataFrame.
-    
+
     Parameters:
     df (pd.DataFrame): Original DataFrame.
     max_values_df (pd.DataFrame): DataFrame containing maximum values.
-    factor (dataframe): Factor for peak shaving.
-    
+    factor_df (pd.DataFrame): Factor for peak shaving.
+
     Returns:
     pd.DataFrame: DataFrame containing peak economies.
     """
@@ -282,7 +282,7 @@ def calculate_peak_economies(df, max_values_df, factor):
         month_condition = (df_shaved.index.month == i)
         
         for j in range(df_shaved.shape[1]):  # Loop over columns
-            factor_value = factor.iloc[i-1, j]
+            factor_value = factor_df.iloc[i-1, j]
             max_value = max_values_df.iloc[i-1, j]
             column_condition = df_shaved.iloc[:, j] > factor_value * max_value
             condition = month_condition & column_condition
@@ -348,20 +348,10 @@ def calculate_financial_savings(peak_economies, HP_cost=8.44, HC_cost=2.6):
     annual_financial_savings = np.sum(financial_savings_df, axis=0)
 
     return annual_financial_savings
-def calculate_energy_economies(df, max_values_df):
-# Initialize an empty list to store the energy economies for each factor
-    energy_economies_list = []
+
+def calculate_energy_economies(peak_economies):
     
-    # Iterate over the factors from 0.9 to 0.4 with 10 intervals
-    for factor in np.linspace(1, 0.8, 20):
-        # Apply peak shaving with the current factor
-        
-        peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, factor)
-        # Calculate energy economies and append to the list
-        energy_economies = peak_economies.sum() # kWh/year/m2 (assuming prior normalization)
-        energy_economies_list.append(energy_economies)
-        
-    energy_economies_df = pd.DataFrame(energy_economies_list)
+    energy_economies_df = np.sum(peak_economies, axis=0)
     return energy_economies_df
 #%% Statistical difference
 Loads_buv = Typo_all_loads["Buvette"]
@@ -461,4 +451,4 @@ avg_monthly_diff_df = pd.DataFrame(average_monthly_diff_all_clients).T
 max_values_df = calculate_max_values(df)
 peak_economies, df_shaved = calculate_peak_economies(df, max_values_df, avg_monthly_diff_df)
 stat_annual_savings = calculate_financial_savings(peak_economies)
-stat_energy_savings = calculate_energy_economies(df, max_values_df)
+stat_energy_savings = calculate_energy_economies(peak_economies)
