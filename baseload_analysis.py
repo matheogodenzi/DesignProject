@@ -28,11 +28,11 @@ LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict = p.g
 #%% get all typologies sorted for all provided year 
 
 # if True > normalized load, if False > absolute load 
-Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, True)
+Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typologies(LoadCurve_2023_dict, LoadCurve_2022_dict, Building_dict_2023, pv_2022_dict, False)
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Commune"
+Typology = "Admin"
 Period = "day"
 
 # smoothing calculations
@@ -150,7 +150,7 @@ df = Loads.astype(np.longdouble)
 baseloads = 4*get_baseload_2(df) #going from kWh/15'/m2 to kW/m2
 
 #print(df[df.index.duplicated()]) # duplicates come from time change 
-df = 1000*baseloads #W/m2
+df = 1000*baseloads #W/m2 or W depeding on normalization
 
 # Define your color palette
 palette = sns.color_palette("hls", df.shape[1])

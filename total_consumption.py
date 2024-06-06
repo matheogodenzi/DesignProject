@@ -515,7 +515,7 @@ grades
 # Sample data
 data = {
     'coefficients': [1/11, 2/11, 3/11, 3/11, 1/11, 1/11],
-    'figures': [0,48,12,32, 0, 59]
+    'figures': [34, 0, 24, 0, 41, 0]
 }
 
 df = pd.DataFrame(data)
