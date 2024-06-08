@@ -34,20 +34,17 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #print(Typo_loads)
 
 
-Typology = "Culture"
+Typology = "Apems"
 
 Loads = Typo_all_loads[Typology]
-Loads_buv = Typo_all_loads["Buvette"]
-Loads_sport = Typo_all_loads["Sport"]
-Loads_parking = Typo_all_loads["Parking"]
-Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking], axis=1)
+
 
 df = Loads.astype(np.longdouble)
 
 #%%
 
 # Specify the month you want to extract (e.g., January)
-desired_month = 5
+desired_month = 12
 
 df.index = pd.to_datetime(df.index, format='%d.%m.%Y %H:%M:%S')
 

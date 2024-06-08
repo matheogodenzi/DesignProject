@@ -238,7 +238,7 @@ def calculate_financial_savings(peak_economies, HP_cost=8.44, HC_cost=2.6):
 
 #%%
 # parameters to change
-Typology = "Commune"
+Typology = "Apems"
 Period = "day"
 
 Loads_buv = Typo_all_loads["Buvette"]
@@ -251,8 +251,8 @@ Loads_apems = Typo_all_loads["Apems"]
 Loads_unique = pd.concat([Loads_buv, Loads_sport, Loads_parking, Loads_commune, Loads_admin, Loads_culture, Loads_apems], axis=1)
 Loads_ecole =  Typo_all_loads["Ecole"]
 
-df = Loads_ecole.astype(np.longdouble)
-Loads_copy = Loads_ecole.copy()
+df = Loads_apems.astype(np.longdouble)
+Loads_copy = Loads_apems.copy()
 
 Loads_copy.index = pd.to_datetime(Loads_copy.index, format='%d.%m.%Y %H:%M:%S')
 
@@ -370,20 +370,21 @@ average_energy_economies = np.mean(energy_economies_df, axis=1)
 #%% illustrative example of peak shaving 
 palette = sb.color_palette("hls", 13)
 
-peak_economies, df_shaved = calculate_peak_economies(dfkW, calculate_max_values(dfkW), factor=0.8)
-slct_cons = 'S280'
+peak_economies, df_shaved = calculate_peak_economies(dfkW, calculate_max_values(dfkW), factor=0.9)
+slct_cons = 'G020'
 
 plt.figure(dpi=300)
 plt.plot(dfkW[slct_cons], color=palette[0])
 plt.plot(df_shaved[slct_cons], color='royalblue')
-plt.legend(["Ecrêtement 20%","Charge restante"], loc='center left', bbox_to_anchor=(1, 0.84))
+plt.legend(["Ecrêtement 10%","Charge restante"], loc='center left', bbox_to_anchor=(1, 0.94))
 # Format x-axis ticks to display only the month
 plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%W'))
 plt.gca().xaxis.set_major_locator(mdates.MonthLocator())
 
 plt.tick_params(axis='both', which='major', labelsize=9)
 plt.xlabel("Semaine")
-plt.ylabel("Charge - [$kW_{el}/m^2$]")
+plt.ylabel("Charge - [$kW_{el}$]")
+plt.title(slct_cons)
 #plt.title("Illustration de l'écrêtement des pointes")
 plt.show()
 

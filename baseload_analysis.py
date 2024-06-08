@@ -32,7 +32,7 @@ Typo_loads_2022, Typo_loads_2023, Typo_all_loads, Correspondance = p.sort_typolo
 #%% creating a benchmark over available years
 
 # parameters to change
-Typology = "Admin"
+Typology = "Commune"
 Period = "day"
 
 # smoothing calculations
